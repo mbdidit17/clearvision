@@ -1,0 +1,8 @@
+{
+  "name": "clearvision-functions",
+  "version": "1.0.0",
+  "description": "Netlify Functions for Clear Vision site",
+  "dependencies": {
+    "stripe": "^14.0.0"
+  }
+}
