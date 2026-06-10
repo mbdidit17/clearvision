@@ -1041,7 +1041,9 @@ function showPage(n){
   var bl=document.getElementById('nav-basket-li');if(bl)bl.style.display=n==='home'?'none':'';
   if(n==='payment')updateOrderSummary();
   if(n==='profile')renderProfilePage();
+  if(n==='admin')renderAdminStats();
   var ft=document.getElementById('siteFooter');if(ft)ft.style.display='block';
+  history.replaceState(null,'','?page='+n);
 }
 
 var packages={foundation:{tag:'Online Coaching',title:'Foundation',price:'£60<span>/mo</span>',priceNum:60,desc:"The Foundation plan is built for anyone ready to take their nutrition seriously. Custom cut or bulk plan, macros, calories, meal structure — all built around you.",features:['Custom cut or bulk nutrition plan','Macro & calorie targets set for your goal','Ongoing nutrition advice via text','Plan adjusted as you progress']},enhanced:{tag:'Online Coaching — Enhanced',title:'Enhanced',price:'£100<span>/mo</span>',priceNum:100,desc:'The Enhanced plan is for those who are genuinely serious. Everything in Foundation plus a fully periodised training programme.',features:['Everything in Foundation','Full personalised training plan','Advanced programming & periodisation','Detailed nutrition targets & adjustments','Plans updated as you progress']}};
@@ -1336,6 +1338,8 @@ document.addEventListener('DOMContentLoaded',function(){
   if(checkoutResult){var t=document.getElementById('checkoutToast');if(t){if(checkoutResult==='success'){t.style.background='#1a472a';t.style.color='#2ecc71';t.textContent='✓ Order confirmed — check your email for details';}else{t.style.background='#2c1515';t.style.color='#e74c3c';t.textContent='Checkout cancelled — your basket is still saved';}t.style.display='block';setTimeout(function(){t.style.opacity='0';setTimeout(function(){t.style.display='none';},400);},5000);}window.history.replaceState({},'',window.location.pathname);}
   var savedEmail=localStorage.getItem('cv_current_user');
   if(savedEmail){var users=loadUsers();if(users[savedEmail]){currentUser=users[savedEmail];if(currentUser.basket&&currentUser.basket.length>0){cart=[].concat(currentUser.basket);renderBasket();}updateNavAuth();}}
+  var pageParam=new URLSearchParams(window.location.search).get('page');
+  if(pageParam&&document.getElementById(pageParam)){showPage(pageParam);}else{showPage('home');}
   document.addEventListener('click',function(e){var btn=document.getElementById('nav-profile-btn');if(btn&&!btn.contains(e.target))btn.classList.remove('open');});
 });
 </script>
