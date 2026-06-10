@@ -827,6 +827,47 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:cen
     <div class="auth-switch" id="auth-switch">
       Don't have an account? <a onclick="toggleAuthMode()">Sign Up</a>
     </div>
+    <div id="auth-forgot" style="text-align:center;margin-top:0.6rem;">
+      <a onclick="showForgotPassword()" style="font-size:0.68rem;color:rgba(255,255,255,0.2);cursor:pointer;letter-spacing:0.08em;">Forgot password?</a>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FORGOT PASSWORD MODAL ══ -->
+<div class="auth-overlay" id="forgotOverlay" onclick="closeForgotIfOutside(event)">
+  <div class="auth-box">
+    <button class="auth-close" onclick="closeForgot()">✕</button>
+    <h2>Reset Password</h2>
+    <div class="auth-sub">We'll send a link to your email</div>
+    <div class="auth-field">
+      <label>Email</label>
+      <input type="email" id="forgot-email" placeholder="your@email.com" autocomplete="email"/>
+    </div>
+    <div class="auth-error" id="forgot-msg"></div>
+    <button class="btn-purple" style="width:100%;padding:0.85rem;" onclick="submitForgotPassword()">
+      <span id="forgot-btn-label">Send Reset Link</span>
+    </button>
+    <div class="auth-switch"><a onclick="closeForgot();openAuth('signin')">Back to Sign In</a></div>
+  </div>
+</div>
+
+<!-- ══ RESET PASSWORD MODAL ══ -->
+<div class="auth-overlay" id="resetOverlay">
+  <div class="auth-box">
+    <h2>New Password</h2>
+    <div class="auth-sub">Choose a new password</div>
+    <div class="auth-field">
+      <label>New Password</label>
+      <input type="password" id="reset-new-pw" placeholder="••••••••"/>
+    </div>
+    <div class="auth-field">
+      <label>Confirm Password</label>
+      <input type="password" id="reset-confirm-pw" placeholder="••••••••"/>
+    </div>
+    <div class="auth-error" id="reset-msg"></div>
+    <button class="btn-purple" style="width:100%;padding:0.85rem;" onclick="submitResetPassword()">
+      <span id="reset-btn-label">Set New Password</span>
+    </button>
   </div>
 </div>
 
@@ -863,6 +904,15 @@ function closeAuthIfOutside(e){if(e.target===document.getElementById('authOverla
 function toggleAuthMode(){authMode=authMode==='signin'?'signup':'signin';document.getElementById('auth-error').textContent='';applyAuthMode();}
 function applyAuthMode(){var s=authMode==='signup';document.getElementById('auth-title').textContent=s?'Sign Up':'Sign In';document.getElementById('auth-sub').textContent=s?'Create your account':'Welcome back';document.getElementById('auth-btn-label').textContent=s?'Create Account':'Sign In';document.getElementById('auth-name-field').style.display=s?'block':'none';document.getElementById('auth-switch').innerHTML=s?'Already have an account? <a onclick="toggleAuthMode()">Sign In</a>':"Don't have an account? <a onclick=\"toggleAuthMode()\">Sign Up</a>";}
 function submitAuth(){var email=document.getElementById('auth-email').value.trim().toLowerCase(),password=document.getElementById('auth-password').value,err=document.getElementById('auth-error');err.textContent='';if(!email||!password){err.textContent='Please fill in all fields.';return;}if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){err.textContent='Please enter a valid email.';return;}var users=loadUsers();if(authMode==='signup'){var name=document.getElementById('auth-name').value.trim();if(!name){err.textContent='Please enter your name.';return;}if(password.length<6){err.textContent='Password must be at least 6 characters.';return;}if(users[email]){err.textContent='An account with this email already exists.';return;}users[email]={email:email,name:name,password:password,orders:[],subscriptions:[],basket:[]};saveUsers(users);currentUser=users[email];}else{if(!users[email]){err.textContent='No account found with this email.';return;}if(users[email].password!==password){err.textContent='Incorrect password.';return;}currentUser=users[email];}saveCurrentUser(currentUser);if(currentUser.basket&&currentUser.basket.length>0){cart=currentUser.basket.concat(cart);renderBasket();}updateNavAuth();closeAuth();}
+// ── FORGOT / RESET PASSWORD ──
+var resetEmail=null;
+function showForgotPassword(){closeAuth();document.getElementById('forgot-email').value='';document.getElementById('forgot-msg').textContent='';document.getElementById('forgot-btn-label').textContent='Send Reset Link';document.getElementById('forgotOverlay').classList.add('open');}
+function closeForgot(){document.getElementById('forgotOverlay').classList.remove('open');}
+function closeForgotIfOutside(e){if(e.target===document.getElementById('forgotOverlay'))closeForgot();}
+async function submitForgotPassword(){var email=document.getElementById('forgot-email').value.trim().toLowerCase(),msg=document.getElementById('forgot-msg'),btn=document.getElementById('forgot-btn-label');msg.style.color='#e55';msg.textContent='';if(!email){msg.textContent='Please enter your email.';return;}btn.textContent='Sending...';document.querySelector('#forgotOverlay .btn-purple').disabled=true;try{var res=await fetch('/.netlify/functions/request-password-reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})});var data=await res.json();if(data.ok){msg.style.color='#4ade80';msg.textContent='Reset link sent — check your inbox.';btn.textContent='Sent';}else{throw new Error(data.error||'Failed to send');}}catch(err){msg.textContent=err.message;btn.textContent='Send Reset Link';document.querySelector('#forgotOverlay .btn-purple').disabled=false;}}
+async function checkResetToken(){var params=new URLSearchParams(window.location.search);var token=params.get('reset'),email=params.get('email');if(!token||!email)return;resetEmail=decodeURIComponent(email);try{var res=await fetch('/.netlify/functions/verify-reset-token',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:decodeURIComponent(token),email:resetEmail})});var data=await res.json();if(data.valid){document.getElementById('reset-new-pw').value='';document.getElementById('reset-confirm-pw').value='';document.getElementById('reset-msg').textContent='';document.getElementById('resetOverlay').classList.add('open');window.history.replaceState({},'',window.location.pathname);}else{alert(data.error||'Reset link is invalid or expired.');}}catch(e){console.error(e);}}
+async function submitResetPassword(){var pw=document.getElementById('reset-new-pw').value,conf=document.getElementById('reset-confirm-pw').value,msg=document.getElementById('reset-msg'),btn=document.getElementById('reset-btn-label');msg.style.color='#e55';if(!pw||!conf){msg.textContent='Please fill in both fields.';return;}if(pw.length<6){msg.textContent='Password must be at least 6 characters.';return;}if(pw!==conf){msg.textContent='Passwords do not match.';return;}var users=loadUsers();if(!users[resetEmail]){msg.textContent='Account not found.';return;}users[resetEmail].password=pw;saveUsers(users);document.getElementById('resetOverlay').classList.remove('open');resetEmail=null;msg.style.color='#4ade80';msg.textContent='';openAuth('signin');document.getElementById('auth-sub').textContent='Password updated — sign in';}
+
 function toggleProfileDropdown(e){e.stopPropagation();document.getElementById('nav-profile-btn').classList.toggle('open');}
 function closeProfileDropdown(){document.getElementById('nav-profile-btn').classList.remove('open');}
 function renderProfilePage(){if(!currentUser){showPage('home');return;}document.getElementById('profile-welcome').textContent='Hi, '+(currentUser.name||'there');document.getElementById('profile-email-label').textContent=currentUser.email;renderOrders();renderSubscriptions();}
@@ -1095,6 +1145,7 @@ document.addEventListener('DOMContentLoaded',function(){
   setTimeout(initLightning,100);
   var ft=document.getElementById('siteFooter');if(ft)ft.style.display='block';
   var bl=document.getElementById('nav-basket-li');if(bl)bl.style.display='none';
+  checkResetToken();
   var savedEmail=localStorage.getItem('cv_current_user');
   if(savedEmail){var users=loadUsers();if(users[savedEmail]){currentUser=users[savedEmail];if(currentUser.basket&&currentUser.basket.length>0){cart=[].concat(currentUser.basket);renderBasket();}updateNavAuth();}}
   document.addEventListener('click',function(e){var btn=document.getElementById('nav-profile-btn');if(btn&&!btn.contains(e.target))btn.classList.remove('open');});
