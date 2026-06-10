@@ -67,6 +67,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:cen
 .qs-btn{flex:1;min-width:0;padding:0.45rem 0;background:transparent;border:1px solid rgba(110,40,180,0.35);color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;font-size:0.7rem;cursor:pointer;transition:all 0.2s;}
 .qs-btn:hover{border-color:var(--purple-bright);color:#fff;}
 .qs-btn.selected{background:var(--purple);border-color:var(--purple);color:#fff;}
+.qs-btn.sold-out{opacity:0.3;cursor:not-allowed;text-decoration:line-through;border-color:rgba(255,255,255,0.08);}
+.size-btn.sold-out{opacity:0.3;cursor:not-allowed;text-decoration:line-through;}
 .qs-add-btn{display:block;width:100%;padding:0.6rem;background:transparent;border:1px solid rgba(110,40,180,0.4);color:rgba(255,255,255,0.6);font-family:'Bebas Neue',sans-serif;font-size:0.82rem;letter-spacing:0.12em;cursor:pointer;transition:all 0.2s;margin-top:0.3rem;}
 .qs-add-btn:hover{background:var(--purple);border-color:var(--purple);color:#fff;}
 #product{flex-direction:column;align-items:center;padding:7rem 2rem 5rem;min-height:100vh;}
@@ -940,6 +942,11 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:cen
 </div>
 
 <script>
+// ── SOLD OUT CONFIG ──
+// Add entries as 'Product Name': ['S','M'] to mark those sizes as sold out.
+// Example: 'CV Core Compression Top': ['XL']
+const SOLD_OUT={};
+
 const STRIPE={'Foundation Coaching':'https://buy.stripe.com/cNi00b53QdZ78hpeZOgIo02','Enhanced Coaching':'https://buy.stripe.com/28E5kv8g23kt2X54lagIo01','THUNDER_HOODIE_LINK':'https://buy.stripe.com/aFabIT1REf3b0OXeZOgIo0c','THUNDER_CREW_LINK':'https://buy.stripe.com/5kQaEPbsecV3gNVg3SgIo09','THUNDER_COMPRESSION_LINK':'https://buy.stripe.com/eVqdR1gMy8EN69h18YgIo08','THUNDER_SHORTS_LINK':'https://buy.stripe.com/4gM00b67U8EN2X55pegIo0a','THUNDER_BOTTOMS_LINK':'https://buy.stripe.com/28E14f7bYf3bbtBg3SgIo0b','SIGNATURE_HOODIE_LINK':'https://buy.stripe.com/eVq7sDbseaMVbtB18YgIo0h','SIGNATURE_CREW_LINK':'https://buy.stripe.com/9B69AL53Qg7fapx2d2gIo0g','SIGNATURE_COMPRESSION_LINK':'https://buy.stripe.com/eVq28jgMy1cl9lt2d2gIo0e','SIGNATURE_SHORTS_LINK':'https://buy.stripe.com/9B6fZ953Q1cleFN6tigIo0d','SIGNATURE_BOTTOMS_LINK':'https://buy.stripe.com/eVq5kvgMybQZdBJ7xmgIo0f','CORE_HOODIE_LINK':'https://buy.stripe.com/bJe14f53Q2gpapxaJygIo04','CORE_CREW_LINK':'https://buy.stripe.com/dRmbIT2VIaMV4195pegIo06','CORE_COMPRESSION_LINK':'https://buy.stripe.com/7sYbIT0NA4ox1T13h6gIo03','CORE_COMPRESSION_LINK':'https://buy.stripe.com/7sYbIT0NA4ox1T13h6gIo03','CORE_SHORTS_LINK':'https://buy.stripe.com/9B66oz7bY9IR41918YgIo07','CORE_BOTTOMS_LINK':'https://buy.stripe.com/8x2fZ99k68EN1T19FugIo05'};
 
 // ── AUTH & USER SYSTEM ──
@@ -1085,6 +1092,7 @@ function showBasketPopup(name){
 }
 
 function qsSelectSize(btn,cardId){
+  if(btn.classList.contains('sold-out'))return;
   document.querySelectorAll('#card-'+cardId+' .qs-btn').forEach(function(b){b.classList.remove('selected');});
   btn.classList.add('selected');
 }
@@ -1113,7 +1121,9 @@ function openQV(name,price,icon,linkKey){
     var cards=document.querySelectorAll('#store .product');
     for(var ci=0;ci<cards.length;ci++){var oc=cards[ci].getAttribute('onclick')||'';if(oc.indexOf("'"+icon+"'")>-1){var img=cards[ci].querySelector('img');if(img){imgEl.src=img.src;break;}}}
   }
-  document.querySelectorAll('.qv-size-btn').forEach(function(b){b.classList.remove('selected');});
+  document.querySelectorAll('.qv-size-btn').forEach(function(b){b.classList.remove('selected','sold-out');});
+  var soSizes=SOLD_OUT[name]||[];
+  document.querySelectorAll('.qv-size-btn').forEach(function(b){if(soSizes.indexOf(b.textContent.trim())>-1)b.classList.add('sold-out');});
   document.getElementById('qvOverlay').classList.add('open');
 }
 
@@ -1146,7 +1156,9 @@ function viewProduct(name,price,icon,linkKey){
     var cards=document.querySelectorAll('#store .product');
     for(var ci=0;ci<cards.length;ci++){var oc=cards[ci].getAttribute('onclick')||'';if(oc.indexOf("'"+icon+"'")>-1){var img=cards[ci].querySelector('img');if(img){imgEl.innerHTML='<img src="'+img.src+'" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;"/>';imgEl.style.fontSize='';break;}}}
   }
-  document.querySelectorAll('.size-btn').forEach(function(b){b.classList.remove('selected');});
+  document.querySelectorAll('.size-btn').forEach(function(b){b.classList.remove('selected','sold-out');});
+  var soSizes2=SOLD_OUT[name]||[];
+  document.querySelectorAll('.size-btn').forEach(function(b){if(soSizes2.indexOf(b.textContent.trim())>-1)b.classList.add('sold-out');});
   var sg=document.getElementById('suggestions-grid');var ss=document.getElementById('suggestions-section');
   sg.innerHTML='';ss.style.display='none';
   if(set){
@@ -1168,7 +1180,8 @@ function viewProduct(name,price,icon,linkKey){
   }
   showPage('product');
 }
-function selectSize(btn){document.querySelectorAll('.size-btn').forEach(function(b){b.classList.remove('selected');});btn.classList.add('selected');fullPageSize=btn.textContent;}
+function selectSize(btn){if(btn.classList.contains('sold-out'))return;document.querySelectorAll('.size-btn').forEach(function(b){b.classList.remove('selected');});btn.classList.add('selected');fullPageSize=btn.textContent;}
+function applySoldOut(){Object.keys(SOLD_OUT).forEach(function(product){var sizes=SOLD_OUT[product];if(!sizes||!sizes.length)return;document.querySelectorAll('.qs-add-btn').forEach(function(addBtn){var oc=addBtn.getAttribute('onclick')||'';var m=oc.match(/qsAddToBasket\('([^']+)'/);if(!m||m[1]!==product)return;var cardId=addBtn.id.replace('qs-add-','');document.querySelectorAll('#card-'+cardId+' .qs-btn').forEach(function(btn){if(sizes.indexOf(btn.textContent.trim())>-1)btn.classList.add('sold-out');});});});}
 function fullPageAddToBasket(){
   if(!fullPageProduct)return;
   if(!fullPageSize){alert('Please select a size.');return;}
@@ -1197,6 +1210,7 @@ function initLightning(){
 
 document.addEventListener('DOMContentLoaded',function(){
   setTimeout(initLightning,100);
+  applySoldOut();
   var ft=document.getElementById('siteFooter');if(ft)ft.style.display='block';
   var bl=document.getElementById('nav-basket-li');if(bl)bl.style.display='none';
   checkResetToken();
