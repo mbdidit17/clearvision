@@ -308,7 +308,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:cen
   <ul class="nav-links">
     <li><a onclick="showPage('home')" class="active" id="nav-home">Home</a></li>
     <li><a onclick="showPage('store')" id="nav-store">Store</a></li>
-    <li><a onclick="showPage('basket')" id="nav-basket" style="display:flex;align-items:center;gap:0.4rem;font-size:1.3rem">🛒<span id="basket-count" style="font-size:0.75rem;color:var(--purple-bright);font-family:'DM Sans',sans-serif;"></span></a></li>
+    <li><a onclick="showPage('story')" id="nav-story">My Story</a></li>
+    <li id="nav-basket-li"><a onclick="showPage('basket')" id="nav-basket" style="display:flex;align-items:center;gap:0.4rem;font-size:1.3rem">🛒<span id="basket-count" style="font-size:0.75rem;color:var(--purple-bright);font-family:'DM Sans',sans-serif;"></span></a></li>
   </ul>
   <div class="nav-auth">
     <button class="nav-sign-in" id="nav-sign-in-btn" onclick="openAuth('signin')">Sign In</button>
@@ -873,6 +874,7 @@ function showPage(n){
   window.scrollTo(0,0);
   if(n==='coaching')setTimeout(initLightning,50);
   if(n==='basket')setTimeout(renderBasket,50);
+  var bl=document.getElementById('nav-basket-li');if(bl)bl.style.display=n==='home'?'none':'';
   if(n==='payment')updateOrderSummary();
   if(n==='profile')renderProfilePage();
   var ft=document.getElementById('siteFooter');if(ft)ft.style.display='block';
@@ -1070,6 +1072,7 @@ function initLightning(){
 document.addEventListener('DOMContentLoaded',function(){
   setTimeout(initLightning,100);
   var ft=document.getElementById('siteFooter');if(ft)ft.style.display='block';
+  var bl=document.getElementById('nav-basket-li');if(bl)bl.style.display='none';
   var savedEmail=localStorage.getItem('cv_current_user');
   if(savedEmail){var users=loadUsers();if(users[savedEmail]){currentUser=users[savedEmail];if(currentUser.basket&&currentUser.basket.length>0){cart=[].concat(currentUser.basket);renderBasket();}updateNavAuth();}}
   document.addEventListener('click',function(e){var btn=document.getElementById('nav-profile-btn');if(btn&&!btn.contains(e.target))btn.classList.remove('open');});
