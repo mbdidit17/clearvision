@@ -206,6 +206,19 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:cen
 .qv-actions{display:flex;flex-direction:column;gap:0.6rem;margin-top:auto;}
 .qv-full-link{font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.2);text-align:center;cursor:pointer;transition:color 0.2s;text-decoration:none;display:block;}
 .qv-full-link:hover{color:rgba(255,255,255,0.5);}
+.admin-tab{background:none;border:none;border-bottom:2px solid transparent;color:rgba(255,255,255,0.4);font-family:'DM Sans',sans-serif;font-size:0.78rem;letter-spacing:0.12em;text-transform:uppercase;padding:0.75rem 1.25rem;cursor:pointer;transition:all 0.2s;margin-bottom:-1px;}
+.admin-tab.active{color:#fff;border-bottom-color:var(--purple-bright);}
+.admin-tab:hover{color:rgba(255,255,255,0.8);}
+.admin-stat-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:1.25rem;border-radius:4px;}
+.admin-stat-val{font-size:1.8rem;font-weight:700;color:var(--purple-bright);line-height:1;}
+.admin-stat-label{font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-top:0.4rem;}
+.admin-table{width:100%;border-collapse:collapse;font-size:0.83rem;}
+.admin-table th{text-align:left;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.3);padding:0.5rem 0.75rem;border-bottom:1px solid rgba(255,255,255,0.08);}
+.admin-table td{padding:0.75rem;border-bottom:1px solid rgba(255,255,255,0.05);color:rgba(255,255,255,0.75);vertical-align:top;}
+.admin-table tr:hover td{background:rgba(255,255,255,0.02);}
+.admin-badge{display:inline-block;padding:0.2rem 0.6rem;font-size:0.68rem;letter-spacing:0.08em;text-transform:uppercase;border-radius:2px;}
+.admin-badge.active{background:rgba(46,204,113,0.15);color:#2ecc71;}
+.admin-badge.cancelled{background:rgba(231,76,60,0.15);color:#e74c3c;}
 .basket-popup{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(20px);background:#0a0a0a;border:1px solid var(--purple-bright);padding:1rem 2rem;display:flex;align-items:center;gap:1rem;z-index:500;opacity:0;pointer-events:none;transition:opacity 0.3s,transform 0.3s;white-space:nowrap;box-shadow:0 0 24px rgba(110,40,180,0.35);}
 .basket-popup.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:all;}
 .basket-popup-text{font-size:0.78rem;letter-spacing:0.08em;color:#fff;}
@@ -320,6 +333,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:cen
       <div class="nav-profile-dropdown">
         <div class="nav-profile-name" id="nav-profile-name-label"></div>
         <a onclick="closeProfileDropdown();showPage('profile')">My Account</a>
+        <a id="nav-admin-link" style="display:none;color:var(--purple-bright)!important;" onclick="closeProfileDropdown();openAdmin()">Admin</a>
         <div class="dropdown-divider"></div>
         <a onclick="closeProfileDropdown();signOut()">Sign Out</a>
       </div>
@@ -610,6 +624,26 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:cen
     </div>
     <button class="btn-purple filled" id="basket-checkout-btn" style="width:100%;padding:1.1rem;font-size:1rem;display:none" onclick="goToCheckout()">Proceed to Checkout</button>
     <p style="text-align:center;margin-top:1rem"><a onclick="showPage('store')" style="font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.25);cursor:pointer;">← Continue Shopping</a></p>
+  </div>
+</div>
+
+<!-- Admin Page -->
+<div class="page" id="admin">
+  <div style="max-width:900px;margin:0 auto;padding:2rem 1.5rem;">
+    <p class="page-label">Clear Vision</p>
+    <h1 style="font-size:2rem;letter-spacing:0.05em;margin-bottom:2rem;">Admin</h1>
+
+    <!-- Stats bar -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:2.5rem;" id="admin-stats"></div>
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:0;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:2rem;">
+      <button class="admin-tab active" onclick="switchAdminTab('orders')" id="atab-orders">Orders</button>
+      <button class="admin-tab" onclick="switchAdminTab('customers')" id="atab-customers">Customers</button>
+      <button class="admin-tab" onclick="switchAdminTab('applications')" id="atab-applications">Applications</button>
+    </div>
+
+    <div id="admin-content"></div>
   </div>
 </div>
 
@@ -954,14 +988,14 @@ var currentUser=null,authMode='signin',cancelTargetIndex=null;
 function loadUsers(){try{return JSON.parse(localStorage.getItem('cv_users')||'{}');}catch(e){return{};}}
 function saveUsers(u){localStorage.setItem('cv_users',JSON.stringify(u));}
 function saveCurrentUser(user){if(!user){localStorage.removeItem('cv_current_user');return;}var u=loadUsers();u[user.email]=user;saveUsers(u);localStorage.setItem('cv_current_user',user.email);}
-function updateNavAuth(){var si=document.getElementById('nav-sign-in-btn'),pb=document.getElementById('nav-profile-btn');if(!si||!pb)return;if(currentUser){si.style.display='none';pb.style.display='flex';document.getElementById('nav-profile-initial').textContent=(currentUser.name||currentUser.email).charAt(0).toUpperCase();document.getElementById('nav-profile-name-label').textContent=currentUser.name||currentUser.email.split('@')[0];}else{si.style.display='';pb.style.display='none';}}
+function updateNavAuth(){var si=document.getElementById('nav-sign-in-btn'),pb=document.getElementById('nav-profile-btn');if(!si||!pb)return;if(currentUser){si.style.display='none';pb.style.display='flex';document.getElementById('nav-profile-initial').textContent=(currentUser.name||currentUser.email).charAt(0).toUpperCase();document.getElementById('nav-profile-name-label').textContent=currentUser.name||currentUser.email.split('@')[0];var al=document.getElementById('nav-admin-link');if(al)al.style.display=isAdmin()?'block':'none';}else{si.style.display='';pb.style.display='none';}}
 function signOut(){currentUser=null;localStorage.removeItem('cv_current_user');cart=[];renderBasket();updateNavAuth();showPage('home');}
 function openAuth(mode){authMode=mode||'signin';document.getElementById('auth-error').textContent='';document.getElementById('auth-email').value='';document.getElementById('auth-password').value='';document.getElementById('auth-name').value='';applyAuthMode();document.getElementById('authOverlay').classList.add('open');}
 function closeAuth(){document.getElementById('authOverlay').classList.remove('open');}
 function closeAuthIfOutside(e){if(e.target===document.getElementById('authOverlay'))closeAuth();}
 function toggleAuthMode(){authMode=authMode==='signin'?'signup':'signin';document.getElementById('auth-error').textContent='';applyAuthMode();}
 function applyAuthMode(){var s=authMode==='signup';document.getElementById('auth-title').textContent=s?'Sign Up':'Sign In';document.getElementById('auth-sub').textContent=s?'Create your account':'Welcome back';document.getElementById('auth-btn-label').textContent=s?'Create Account':'Sign In';document.getElementById('auth-name-field').style.display=s?'block':'none';document.getElementById('auth-switch').innerHTML=s?'Already have an account? <a onclick="toggleAuthMode()">Sign In</a>':"Don't have an account? <a onclick=\"toggleAuthMode()\">Sign Up</a>";}
-function submitAuth(){var email=document.getElementById('auth-email').value.trim().toLowerCase(),password=document.getElementById('auth-password').value,err=document.getElementById('auth-error');err.textContent='';if(!email||!password){err.textContent='Please fill in all fields.';return;}if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){err.textContent='Please enter a valid email.';return;}var users=loadUsers();if(authMode==='signup'){var name=document.getElementById('auth-name').value.trim();if(!name){err.textContent='Please enter your name.';return;}if(password.length<6){err.textContent='Password must be at least 6 characters.';return;}if(users[email]){err.textContent='An account with this email already exists.';return;}users[email]={email:email,name:name,password:password,orders:[],subscriptions:[],basket:[]};saveUsers(users);currentUser=users[email];}else{if(!users[email]){err.textContent='No account found with this email.';return;}if(users[email].password!==password){err.textContent='Incorrect password.';return;}currentUser=users[email];}saveCurrentUser(currentUser);if(currentUser.basket&&currentUser.basket.length>0){cart=currentUser.basket.concat(cart);renderBasket();}updateNavAuth();closeAuth();}
+function submitAuth(){var email=document.getElementById('auth-email').value.trim().toLowerCase(),password=document.getElementById('auth-password').value,err=document.getElementById('auth-error');err.textContent='';if(!email||!password){err.textContent='Please fill in all fields.';return;}if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){err.textContent='Please enter a valid email.';return;}var users=loadUsers();if(authMode==='signup'){var name=document.getElementById('auth-name').value.trim();if(!name){err.textContent='Please enter your name.';return;}if(password.length<6){err.textContent='Password must be at least 6 characters.';return;}if(users[email]){err.textContent='An account with this email already exists.';return;}users[email]={email:email,name:name,password:password,orders:[],subscriptions:[],basket:[],joined:new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})};saveUsers(users);currentUser=users[email];}else{if(!users[email]){err.textContent='No account found with this email.';return;}if(users[email].password!==password){err.textContent='Incorrect password.';return;}currentUser=users[email];}saveCurrentUser(currentUser);if(currentUser.basket&&currentUser.basket.length>0){cart=currentUser.basket.concat(cart);renderBasket();}updateNavAuth();closeAuth();}
 // ── FORGOT / RESET PASSWORD ──
 var resetEmail=null;
 function showForgotPassword(){closeAuth();document.getElementById('forgot-email').value='';document.getElementById('forgot-msg').textContent='';document.getElementById('forgot-btn-label').textContent='Send Reset Link';document.getElementById('forgotOverlay').classList.add('open');}
@@ -1206,6 +1240,88 @@ function initLightning(){
   layers.forEach(function(layer,li){if(ts-layer.lastRegen>120+li*30){var off=60;layer.segments=buildBorder(w-off*2,h-off*2,38,6).map(function(seg){return seg.map(function(pt){return[pt[0]+off,pt[1]+off];});});layer.lastRegen=ts;}
   var la=[1,0.6,0.35][li];layer.segments.forEach(function(seg){ctx.beginPath();seg.forEach(function(pt,i){if(i===0)ctx.moveTo(pt[0],pt[1]);else ctx.lineTo(pt[0],pt[1]);});ctx.shadowBlur=hovered?40:28;ctx.shadowColor='#7c3aed';ctx.strokeStyle='rgba(120,60,220,'+(0.28*fl*la)+')';ctx.lineWidth=(hovered?9:6)*thick*(li===0?1:0.6);ctx.stroke();ctx.shadowBlur=hovered?20:12;ctx.shadowColor='#a855f7';ctx.strokeStyle='rgba(168,85,247,'+(0.65*fl*la)+')';ctx.lineWidth=(hovered?5:3.5)*thick*(li===0?1:0.55);ctx.stroke();ctx.shadowBlur=5;ctx.shadowColor='#e9d5ff';ctx.strokeStyle='rgba(233,213,255,'+(0.92*fl*la)+')';ctx.lineWidth=(hovered?2.5:1.6)*thick*(li===0?1:0.5);ctx.stroke();});});requestAnimationFrame(draw);}
   requestAnimationFrame(draw);
+}
+
+// ── ADMIN ──
+var ADMIN_EMAIL='marcelaug28@gmail.com';
+var adminTab='orders';
+function isAdmin(){return currentUser&&currentUser.email===ADMIN_EMAIL;}
+
+function openAdmin(){
+  if(!isAdmin()){showPage('home');return;}
+  showPage('admin');
+  renderAdminStats();
+  switchAdminTab('orders');
+}
+
+function switchAdminTab(tab){
+  adminTab=tab;
+  ['orders','customers','applications'].forEach(function(t){
+    var el=document.getElementById('atab-'+t);
+    if(el)el.classList.toggle('active',t===tab);
+  });
+  renderAdminContent();
+}
+
+function getAllUsers(){return Object.values(loadUsers());}
+
+function renderAdminStats(){
+  var users=getAllUsers();
+  var allOrders=users.reduce(function(a,u){return a.concat(u.orders||[]);}, []);
+  var allSubs=users.reduce(function(a,u){return a.concat(u.subscriptions||[]);}, []);
+  var activeSubs=allSubs.filter(function(s){return s.status==='active';});
+  var revenue=allOrders.reduce(function(s,o){return s+parseFloat((o.total||'£0').replace('£',''));},0);
+  var el=document.getElementById('admin-stats');
+  if(!el)return;
+  el.innerHTML=[
+    {val:users.length,label:'Customers'},
+    {val:allOrders.length,label:'Orders'},
+    {val:activeSubs.length,label:'Active Subs'},
+    {val:'£'+revenue.toFixed(2),label:'Total Revenue'}
+  ].map(function(s){return'<div class="admin-stat-card"><div class="admin-stat-val">'+s.val+'</div><div class="admin-stat-label">'+s.label+'</div></div>';}).join('');
+}
+
+function renderAdminContent(){
+  var el=document.getElementById('admin-content');
+  if(!el)return;
+  var users=getAllUsers();
+
+  if(adminTab==='orders'){
+    var rows=[];
+    users.forEach(function(u){
+      (u.orders||[]).forEach(function(o){
+        rows.push({email:u.email,name:u.name||'—',id:o.id,date:o.date,items:o.items||[],total:o.total});
+      });
+    });
+    rows.sort(function(a,b){return b.id>a.id?1:-1;});
+    if(!rows.length){el.innerHTML='<p style="color:rgba(255,255,255,0.3);font-size:0.85rem;">No orders yet.</p>';return;}
+    el.innerHTML='<table class="admin-table"><thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Items</th><th>Total</th></tr></thead><tbody>'+
+      rows.map(function(r){return'<tr><td style="color:#fff;font-weight:600;">#'+r.id+'</td><td>'+r.date+'</td><td><div>'+r.name+'</div><div style="color:rgba(255,255,255,0.35);font-size:0.75rem;">'+r.email+'</div></td><td>'+r.items.map(function(i){return i.name;}).join('<br/>')+'</td><td style="color:var(--purple-bright);font-weight:600;">'+r.total+'</td></tr>';}).join('')+
+    '</tbody></table>';
+  }
+
+  if(adminTab==='customers'){
+    if(!users.length){el.innerHTML='<p style="color:rgba(255,255,255,0.3);font-size:0.85rem;">No customers yet.</p>';return;}
+    el.innerHTML='<table class="admin-table"><thead><tr><th>Name</th><th>Email</th><th>Orders</th><th>Subscriptions</th><th>Joined</th></tr></thead><tbody>'+
+      users.map(function(u){
+        var subs=(u.subscriptions||[]).filter(function(s){return s.status==='active';});
+        return'<tr><td style="color:#fff;">'+( u.name||'—')+'</td><td style="color:rgba(255,255,255,0.5);">'+u.email+'</td><td>'+(u.orders||[]).length+'</td><td>'+(subs.length?subs.map(function(s){return'<span class="admin-badge active">'+s.name+'</span>';}).join(' '):'<span style="color:rgba(255,255,255,0.25);">None</span>')+'</td><td style="color:rgba(255,255,255,0.4);">'+(u.joined||'—')+'</td></tr>';
+      }).join('')+
+    '</tbody></table>';
+  }
+
+  if(adminTab==='applications'){
+    var apps=[];
+    users.forEach(function(u){
+      (u.coachingApplication||[]).forEach(function(a){
+        apps.push({email:u.email,name:u.name||'—',app:a});
+      });
+    });
+    if(!apps.length){el.innerHTML='<p style="color:rgba(255,255,255,0.3);font-size:0.85rem;">No applications yet.</p>';return;}
+    el.innerHTML='<table class="admin-table"><thead><tr><th>Date</th><th>Customer</th><th>Package</th><th>Goal</th><th>Experience</th><th>Days</th><th>Notes</th></tr></thead><tbody>'+
+      apps.map(function(r){return'<tr><td>'+r.app.date+'</td><td><div>'+r.name+'</div><div style="color:rgba(255,255,255,0.35);font-size:0.75rem;">'+r.email+'</div></td><td style="color:var(--purple-bright);">'+r.app.package+'</td><td>'+r.app.goal+'</td><td>'+r.app.experience+'</td><td>'+r.app.days+'</td><td style="color:rgba(255,255,255,0.4);">'+(r.app.notes||'—')+'</td></tr>';}).join('')+
+    '</tbody></table>';
+  }
 }
 
 document.addEventListener('DOMContentLoaded',function(){
