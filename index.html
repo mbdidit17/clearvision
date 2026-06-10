@@ -740,9 +740,29 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:cen
   <div class="profile-tabs">
     <button class="profile-tab active" onclick="switchProfileTab('orders')">Orders</button>
     <button class="profile-tab" onclick="switchProfileTab('subscriptions')">Subscriptions</button>
+    <button class="profile-tab" onclick="switchProfileTab('details')">My Details</button>
   </div>
   <div class="profile-panel active" id="profile-orders-panel"><div id="profile-orders-list"></div></div>
   <div class="profile-panel" id="profile-subs-panel"><div id="profile-subs-list"></div></div>
+  <div class="profile-panel" id="profile-details-panel">
+    <div class="profile-card">
+      <div style="margin-bottom:1.5rem">
+        <div class="profile-card-title" style="margin-bottom:1.2rem">Personal Info</div>
+        <div class="auth-field"><label>Full Name</label><input type="text" id="details-name" autocomplete="name"/></div>
+        <div class="auth-field"><label>Email</label><input type="email" id="details-email" autocomplete="email"/></div>
+        <div class="details-msg" id="details-info-msg" style="font-size:0.72rem;min-height:1rem;margin-bottom:0.8rem;"></div>
+        <button class="btn-purple" style="padding:0.7rem 1.5rem;font-size:0.8rem;" onclick="saveDetails()">Save Changes</button>
+      </div>
+    </div>
+    <div class="profile-card" style="margin-top:0">
+      <div class="profile-card-title" style="margin-bottom:1.2rem">Change Password</div>
+      <div class="auth-field"><label>Current Password</label><input type="password" id="details-current-pw" placeholder="••••••••"/></div>
+      <div class="auth-field"><label>New Password</label><input type="password" id="details-new-pw" placeholder="••••••••"/></div>
+      <div class="auth-field"><label>Confirm New Password</label><input type="password" id="details-confirm-pw" placeholder="••••••••"/></div>
+      <div class="details-msg" id="details-pw-msg" style="font-size:0.72rem;min-height:1rem;margin-bottom:0.8rem;"></div>
+      <button class="btn-purple" style="padding:0.7rem 1.5rem;font-size:0.8rem;" onclick="savePassword()">Update Password</button>
+    </div>
+  </div>
 </div>
 
 <footer class="site-footer" id="siteFooter">
@@ -846,7 +866,9 @@ function submitAuth(){var email=document.getElementById('auth-email').value.trim
 function toggleProfileDropdown(e){e.stopPropagation();document.getElementById('nav-profile-btn').classList.toggle('open');}
 function closeProfileDropdown(){document.getElementById('nav-profile-btn').classList.remove('open');}
 function renderProfilePage(){if(!currentUser){showPage('home');return;}document.getElementById('profile-welcome').textContent='Hi, '+(currentUser.name||'there');document.getElementById('profile-email-label').textContent=currentUser.email;renderOrders();renderSubscriptions();}
-function switchProfileTab(tab){document.querySelectorAll('.profile-tab').forEach(function(t,i){t.classList.toggle('active',(i===0&&tab==='orders')||(i===1&&tab==='subscriptions'));});document.getElementById('profile-orders-panel').classList.toggle('active',tab==='orders');document.getElementById('profile-subs-panel').classList.toggle('active',tab==='subscriptions');}
+function switchProfileTab(tab){document.querySelectorAll('.profile-tab').forEach(function(t,i){t.classList.toggle('active',(i===0&&tab==='orders')||(i===1&&tab==='subscriptions')||(i===2&&tab==='details'));});document.getElementById('profile-orders-panel').classList.toggle('active',tab==='orders');document.getElementById('profile-subs-panel').classList.toggle('active',tab==='subscriptions');document.getElementById('profile-details-panel').classList.toggle('active',tab==='details');if(tab==='details'&&currentUser){document.getElementById('details-name').value=currentUser.name||'';document.getElementById('details-email').value=currentUser.email||'';document.getElementById('details-current-pw').value='';document.getElementById('details-new-pw').value='';document.getElementById('details-confirm-pw').value='';document.getElementById('details-info-msg').textContent='';document.getElementById('details-pw-msg').textContent='';}}
+function saveDetails(){var name=document.getElementById('details-name').value.trim(),email=document.getElementById('details-email').value.trim().toLowerCase(),msg=document.getElementById('details-info-msg');msg.style.color='#e55';if(!name||!email){msg.textContent='Please fill in all fields.';return;}if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){msg.textContent='Please enter a valid email.';return;}var users=loadUsers();if(email!==currentUser.email&&users[email]){msg.textContent='That email is already in use.';return;}if(email!==currentUser.email){delete users[currentUser.email];currentUser.email=email;localStorage.setItem('cv_current_user',email);}currentUser.name=name;saveCurrentUser(currentUser);updateNavAuth();msg.style.color='#4ade80';msg.textContent='Saved.';}
+function savePassword(){var cur=document.getElementById('details-current-pw').value,nw=document.getElementById('details-new-pw').value,conf=document.getElementById('details-confirm-pw').value,msg=document.getElementById('details-pw-msg');msg.style.color='#e55';if(!cur||!nw||!conf){msg.textContent='Please fill in all fields.';return;}if(cur!==currentUser.password){msg.textContent='Current password is incorrect.';return;}if(nw.length<6){msg.textContent='New password must be at least 6 characters.';return;}if(nw!==conf){msg.textContent='Passwords do not match.';return;}currentUser.password=nw;saveCurrentUser(currentUser);document.getElementById('details-current-pw').value='';document.getElementById('details-new-pw').value='';document.getElementById('details-confirm-pw').value='';msg.style.color='#4ade80';msg.textContent='Password updated.';}
 function renderOrders(){var c=document.getElementById('profile-orders-list'),orders=currentUser.orders||[];if(orders.length===0){c.innerHTML='<div class="profile-empty">No orders yet</div>';return;}c.innerHTML=orders.slice().reverse().map(function(o){return'<div class="profile-card"><div class="profile-card-header"><div class="profile-card-title">Order #'+o.id+'</div><div class="profile-card-date">'+o.date+'</div></div><div class="profile-card-items">'+o.items.map(function(i){return i.name+' — '+i.price;}).join('<br>')+'</div><div class="profile-card-total">Total: '+o.total+'</div></div>';}).join('');}
 function renderSubscriptions(){var c=document.getElementById('profile-subs-list'),subs=currentUser.subscriptions||[];if(subs.length===0){c.innerHTML='<div class="profile-empty">No active subscriptions</div>';return;}c.innerHTML=subs.map(function(sub,i){return'<div class="profile-card"><div class="profile-card-header"><div><div class="profile-card-title">'+sub.name+'</div><div class="profile-card-date">Started '+sub.startDate+' · '+sub.price+'/mo</div></div><span class="sub-status '+sub.status+'">'+(sub.status==='active'?'Active':'Cancelled')+'</span></div>'+(sub.status==='cancelled'?'<div style="font-size:0.72rem;color:rgba(255,255,255,0.3);margin-top:0.5rem;">Coaching remains active until end of billing period.</div>':'')+(sub.status==='active'?'<button class="sub-cancel-btn" style="margin-top:1rem" onclick="openCancelModal('+i+')">Cancel Subscription</button>':'')+'</div>';}).join('');}
 function openCancelModal(idx){cancelTargetIndex=idx;var sub=currentUser.subscriptions[idx];document.getElementById('cancel-sub-name').textContent=sub.name+' — '+sub.price+'/mo';document.getElementById('cancelOverlay').classList.add('open');}
