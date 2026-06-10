@@ -1301,11 +1301,12 @@ function renderAdminContent(){
   }
 
   if(adminTab==='customers'){
-    if(!users.length){el.innerHTML='<p style="color:rgba(255,255,255,0.3);font-size:0.85rem;">No customers yet.</p>';return;}
+    var coachingUsers=users.filter(function(u){return(u.coachingApplication&&u.coachingApplication.length)||(u.subscriptions&&u.subscriptions.length);});
+    if(!coachingUsers.length){el.innerHTML='<p style="color:rgba(255,255,255,0.3);font-size:0.85rem;">No customers yet.</p>';return;}
     el.innerHTML='<table class="admin-table"><thead><tr><th>Name</th><th>Email</th><th>Orders</th><th>Subscriptions</th><th>Joined</th></tr></thead><tbody>'+
-      users.map(function(u){
+      coachingUsers.map(function(u){
         var subs=(u.subscriptions||[]).filter(function(s){return s.status==='active';});
-        return'<tr><td style="color:#fff;">'+( u.name||'—')+'</td><td style="color:rgba(255,255,255,0.5);">'+u.email+'</td><td>'+(u.orders||[]).length+'</td><td>'+(subs.length?subs.map(function(s){return'<span class="admin-badge active">'+s.name+'</span>';}).join(' '):'<span style="color:rgba(255,255,255,0.25);">None</span>')+'</td><td style="color:rgba(255,255,255,0.4);">'+(u.joined||'—')+'</td></tr>';
+        return'<tr><td style="color:#fff;">'+(u.name||'—')+'</td><td style="color:rgba(255,255,255,0.5);">'+u.email+'</td><td>'+(u.orders||[]).length+'</td><td>'+(subs.length?subs.map(function(s){return'<span class="admin-badge active">'+s.name+'</span>';}).join(' '):'<span style="color:rgba(255,255,255,0.25);">None</span>')+'</td><td style="color:rgba(255,255,255,0.4);">'+(u.joined||'—')+'</td></tr>';
       }).join('')+
     '</tbody></table>';
   }
