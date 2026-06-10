@@ -1043,7 +1043,7 @@ function showPage(n){
   if(n==='profile')renderProfilePage();
   if(n==='admin')renderAdminStats();
   var ft=document.getElementById('siteFooter');if(ft)ft.style.display='block';
-  history.replaceState(null,'','?page='+n);
+  history.replaceState(null,'',n==='home'?window.location.pathname:'?page='+n);
 }
 
 var packages={foundation:{tag:'Online Coaching',title:'Foundation',price:'£60<span>/mo</span>',priceNum:60,desc:"The Foundation plan is built for anyone ready to take their nutrition seriously. Custom cut or bulk plan, macros, calories, meal structure — all built around you.",features:['Custom cut or bulk nutrition plan','Macro & calorie targets set for your goal','Ongoing nutrition advice via text','Plan adjusted as you progress']},enhanced:{tag:'Online Coaching — Enhanced',title:'Enhanced',price:'£100<span>/mo</span>',priceNum:100,desc:'The Enhanced plan is for those who are genuinely serious. Everything in Foundation plus a fully periodised training programme.',features:['Everything in Foundation','Full personalised training plan','Advanced programming & periodisation','Detailed nutrition targets & adjustments','Plans updated as you progress']}};
