@@ -39,6 +39,7 @@ export async function onRequestPost({ request, env }) {
     });
     const liData = await liRes.json();
     const items = liData.data.map(i => ({ name: i.description, price: '£' + (i.amount_total / 100).toFixed(2) }));
+    const isCoachingOrder = items.some(i => /coaching/i.test(i.name));
     const total = '£' + (session.amount_total / 100).toFixed(2);
     const date = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     const orderId = session.id.slice(-8).toUpperCase();
@@ -64,6 +65,10 @@ export async function onRequestPost({ request, env }) {
           <div style="display:flex;justify-content:space-between;padding:1rem 0;font-weight:bold;">
             <span>Total</span><span style="color:#6e28b4">${total}</span>
           </div>
+          ${isCoachingOrder ? `<div style="margin:1.5rem 0;padding:1.25rem;border:1px solid rgba(110,40,180,0.4);background:rgba(110,40,180,0.08);">
+            <p style="font-size:0.8rem;letter-spacing:0.12em;text-transform:uppercase;color:#a855f7;margin-bottom:0.5rem;">Next Step — WhatsApp</p>
+            <p style="font-size:0.82rem;color:rgba(255,255,255,0.6);line-height:1.7;margin:0;">Once your application has been reviewed we will be in touch within 24 hours. When messaging on WhatsApp please open with:<br><br><strong style="color:#fff;">"Hi, my name is [Your Name] — order #${orderId}"</strong><br><br>This helps us match you to your plan instantly.</p>
+          </div>` : ''}
           <p style="color:rgba(255,255,255,0.4);font-size:0.75rem;margin-top:2rem;">Questions? contact@clearvision.ink</p>
         </div>`
       })

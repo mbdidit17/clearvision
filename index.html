@@ -226,6 +226,14 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:cen
 .basket-popup-btn{background:var(--purple);border:none;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:0.8rem;letter-spacing:0.12em;padding:0.5rem 1rem;cursor:pointer;transition:background 0.2s;}
 .basket-popup-btn:hover{background:var(--purple-bright);}
 .site-footer{background:#000;border-top:1px solid rgba(255,255,255,0.05);padding:3rem 4rem;display:none;}
+.result-card{background:#0a0a0a;border:1px solid rgba(255,255,255,0.07);overflow:hidden;transition:border-color 0.2s;}
+.result-card:hover{border-color:rgba(110,40,180,0.4);}
+.result-placeholder{height:220px;background:linear-gradient(135deg,#0f0f0f,#1a1a1a);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:0.75rem;letter-spacing:0.15em;text-transform:uppercase;}
+.result-body{padding:1.25rem;}
+.result-name{font-size:0.8rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.9);margin-bottom:0.3rem;}
+.result-stat{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:0.05em;color:#a855f7;margin-bottom:0.6rem;}
+.result-quote{font-size:0.78rem;color:rgba(255,255,255,0.4);line-height:1.7;font-style:italic;margin-bottom:0.8rem;}
+.result-plan{font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.2);}
 .footer-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3rem;max-width:1000px;margin:0 auto 2.5rem;}
 .footer-col-title{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.1em;margin-bottom:1rem;color:rgba(255,255,255,0.8);}
 .footer-links{list-style:none;display:flex;flex-direction:column;gap:0.6rem;}
@@ -324,6 +332,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:cen
     <li><a onclick="showPage('home')" class="active" id="nav-home">Home</a></li>
     <li><a onclick="showPage('store')" id="nav-store">Store</a></li>
     <li><a onclick="showPage('story')" id="nav-story">My Story</a></li>
+    <li><a onclick="showPage('results')" id="nav-results">Results</a></li>
     <li id="nav-basket-li"><a onclick="showPage('basket')" id="nav-basket" style="display:flex;align-items:center;gap:0.4rem;font-size:1.3rem">🛒<span id="basket-count" style="font-size:0.75rem;color:var(--purple-bright);font-family:'DM Sans',sans-serif;"></span></a></li>
   </ul>
   <div class="nav-auth">
@@ -815,6 +824,49 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:cen
   <span>✓</span>
   <div class="basket-popup-text">Added — <span id="popup-item-name"></span></div>
   <button class="basket-popup-btn" onclick="showPage('basket')">View Basket</button>
+</div>
+
+<!-- ══ RESULTS PAGE ══ -->
+<div class="page" id="results">
+  <div style="max-width:1000px;margin:0 auto;padding:4rem 2rem;">
+    <div class="page-label">Transformations</div>
+    <h1 style="font-family:'Bebas Neue',sans-serif;font-size:3.5rem;letter-spacing:0.04em;margin-bottom:0.5rem;">Client Results</h1>
+    <p style="color:rgba(255,255,255,0.4);font-size:0.85rem;letter-spacing:0.06em;margin-bottom:3rem;">Real people. Real results.</p>
+    <div id="results-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;">
+      <!-- Placeholder cards — replace with real client photos/testimonials -->
+      <div class="result-card">
+        <div class="result-placeholder">Before / After</div>
+        <div class="result-body">
+          <p class="result-name">Client — Coming Soon</p>
+          <p class="result-stat">Lost 8kg in 12 weeks</p>
+          <p class="result-quote">"The plan was straightforward and actually worked around my life."</p>
+          <p class="result-plan">Foundation Plan</p>
+        </div>
+      </div>
+      <div class="result-card">
+        <div class="result-placeholder">Before / After</div>
+        <div class="result-body">
+          <p class="result-name">Client — Coming Soon</p>
+          <p class="result-stat">Gained 4kg lean mass in 16 weeks</p>
+          <p class="result-quote">"Best investment I made. My training finally started making sense."</p>
+          <p class="result-plan">Enhanced Plan</p>
+        </div>
+      </div>
+      <div class="result-card">
+        <div class="result-placeholder">Before / After</div>
+        <div class="result-body">
+          <p class="result-name">Client — Coming Soon</p>
+          <p class="result-stat">Dropped 2 clothing sizes in 10 weeks</p>
+          <p class="result-quote">"Consistent check-ins kept me on track every single week."</p>
+          <p class="result-plan">Foundation Plan</p>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:3rem;text-align:center;">
+      <p style="color:rgba(255,255,255,0.3);font-size:0.8rem;letter-spacing:0.08em;margin-bottom:1.5rem;">READY TO START YOUR OWN TRANSFORMATION?</p>
+      <button class="btn-purple" onclick="showPage('coaching')">View Coaching Plans</button>
+    </div>
+  </div>
 </div>
 
 <!-- ══ PROFILE PAGE ══ -->
