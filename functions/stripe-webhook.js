@@ -67,7 +67,7 @@ export async function onRequestPost({ request, env }) {
           </div>
           ${isCoachingOrder ? `<div style="margin:1.5rem 0;padding:1.25rem;border:1px solid rgba(110,40,180,0.4);background:rgba(110,40,180,0.08);">
             <p style="font-size:0.8rem;letter-spacing:0.12em;text-transform:uppercase;color:#a855f7;margin-bottom:0.5rem;">Next Step — WhatsApp</p>
-            <p style="font-size:0.82rem;color:rgba(255,255,255,0.6);line-height:1.7;margin:0;">Once your application has been reviewed we will be in touch within 24 hours. When messaging on WhatsApp please open with:<br><br><strong style="color:#fff;">"Hi, my name is [Your Name] — order #${orderId}"</strong><br><br>This helps us match you to your plan instantly.</p>
+            <p style="font-size:0.82rem;color:rgba(255,255,255,0.6);line-height:1.7;margin:0;">Once your application has been reviewed we will be in touch within 24 hours. Message us on WhatsApp at <strong style="color:#fff;">+44 7435 719383</strong> and open with:<br><br><strong style="color:#fff;">"Hi, my name is [Your Name] — order #${orderId}"</strong><br><br>This helps us match you to your plan instantly.</p>
           </div>` : ''}
           <p style="color:rgba(255,255,255,0.4);font-size:0.75rem;margin-top:2rem;">Questions? contact@clearvision.ink</p>
         </div>`
