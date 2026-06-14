@@ -372,7 +372,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:cen
   <div class="tiers">
     <div class="tier">
       <h2 class="tier-name">Foundation</h2>
-      <div class="tier-price">£60<span>/mo</span></div>
+      <div class="tier-price">£80<span>/mo</span></div>
       <p class="tier-desc">For anyone ready to take their nutrition seriously. Built around you, no generic plans.</p>
       <ul class="tier-features">
         <li>Custom cut or bulk nutrition plan</li>
@@ -385,7 +385,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:cen
     <div class="tier featured">
       <canvas class="lightning-canvas" id="lightningCanvas"></canvas>
       <h2 class="tier-name">Enhanced</h2>
-      <div class="tier-price">£100<span>/mo</span></div>
+      <div class="tier-price">£120<span>/mo</span></div>
       <p class="tier-desc">For those who are genuinely serious. Harder training, more detailed programming, nutrition fully dialled in.</p>
       <ul class="tier-features">
         <li>Everything in Foundation</li>
@@ -730,7 +730,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:cen
     <button class="modal-close" onclick="closeBriefing()">✕</button>
     <p class="modal-tag" id="modal-tag">Coaching</p>
     <h2 class="modal-title" id="modal-title">Foundation</h2>
-    <div class="modal-price" id="modal-price">£60<span>/mo</span></div>
+    <div class="modal-price" id="modal-price">£80<span>/mo</span></div>
     <p class="modal-desc" id="modal-desc"></p>
     <p class="modal-features-title">What's included</p>
     <ul class="modal-features" id="modal-features"></ul>
@@ -1079,7 +1079,7 @@ function showPage(n){
   history.pushState({page:n},'',n==='home'?window.location.pathname:'?page='+n);
 }
 
-var packages={foundation:{tag:'Online Coaching',title:'Foundation',price:'£60<span>/mo</span>',priceNum:60,desc:"The Foundation plan is built for anyone ready to take their nutrition seriously. Custom cut or bulk plan, macros, calories, meal structure — all built around you.",features:['Custom cut or bulk nutrition plan','Macro & calorie targets set for your goal','Ongoing nutrition advice via text','Plan adjusted as you progress']},enhanced:{tag:'Online Coaching — Enhanced',title:'Enhanced',price:'£100<span>/mo</span>',priceNum:100,desc:'The Enhanced plan is for those who are genuinely serious. Everything in Foundation plus a fully periodised training programme.',features:['Everything in Foundation','Full personalised training plan','Advanced programming & periodisation','Detailed nutrition targets & adjustments','Plans updated as you progress']}};
+var packages={foundation:{tag:'Online Coaching',title:'Foundation',price:'£80<span>/mo</span>',priceNum:80,desc:"The Foundation plan is built for anyone ready to take their nutrition seriously. Custom cut or bulk plan, macros, calories, meal structure — all built around you.",features:['Custom cut or bulk nutrition plan','Macro & calorie targets set for your goal','Ongoing nutrition advice via text','Plan adjusted as you progress']},enhanced:{tag:'Online Coaching — Enhanced',title:'Enhanced',price:'£120<span>/mo</span>',priceNum:120,desc:'The Enhanced plan is for those who are genuinely serious. Everything in Foundation plus a fully periodised training programme.',features:['Everything in Foundation','Full personalised training plan','Advanced programming & periodisation','Detailed nutrition targets & adjustments','Plans updated as you progress']}};
 var currentPackage=null;
 function openBriefing(k){var p=packages[k];currentPackage=p;document.getElementById('modal-tag').textContent=p.tag;document.getElementById('modal-title').textContent=p.title;document.getElementById('modal-price').innerHTML=p.price;document.getElementById('modal-desc').textContent=p.desc;document.getElementById('modal-features').innerHTML=p.features.map(function(f){return'<li>'+f+'</li>';}).join('');document.getElementById('modalOverlay').classList.add('open');}
 function closeBriefing(){document.getElementById('modalOverlay').classList.remove('open');}
