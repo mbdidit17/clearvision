@@ -1135,12 +1135,7 @@ function goToCheckout(){
     var dateStr=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
     var orderItems=cart.map(function(i){return{name:i.name,price:i.price};});
     var orderTotal='£'+cart.reduce(function(s,i){return s+parseFloat(i.price.replace('£',''));},0).toFixed(2);
-    currentUser.orders=currentUser.orders||[];
-    currentUser.orders.push({id:orderId,date:dateStr,items:orderItems,total:orderTotal});
-    cart.filter(function(i){return i.name.toLowerCase().includes('coaching');}).forEach(function(item){
-      currentUser.subscriptions=currentUser.subscriptions||[];
-      currentUser.subscriptions.push({name:item.name,price:item.price,startDate:dateStr,status:'active'});
-    });
+    sessionStorage.setItem('cv_pending_order',JSON.stringify({id:orderId,date:dateStr,items:orderItems,total:orderTotal,email:currentUser.email}));
     currentUser.basket=[];
     saveCurrentUser(currentUser);
   }
@@ -1375,6 +1370,7 @@ document.addEventListener('DOMContentLoaded',function(){
   // Checkout result toast
   var urlParams=new URLSearchParams(window.location.search);
   var checkoutResult=urlParams.get('checkout');
+  if(checkoutResult==='success'){var pending=sessionStorage.getItem('cv_pending_order');if(pending){try{var po=JSON.parse(pending);var users=loadUsers();var ue=po.email;if(ue&&users[ue]){users[ue].orders=users[ue].orders||[];users[ue].orders.push({id:po.id,date:po.date,items:po.items,total:po.total});var coachingItems=po.items.filter(function(i){return/coaching/i.test(i.name);});if(coachingItems.length){users[ue].subscriptions=users[ue].subscriptions||[];coachingItems.forEach(function(item){users[ue].subscriptions.push({name:item.name,price:item.price,startDate:po.date,status:'active'});});}localStorage.setItem('cv_users',JSON.stringify(users));if(currentUser&&currentUser.email===ue){currentUser=users[ue];}}}catch(e){}sessionStorage.removeItem('cv_pending_order');}}
   if(checkoutResult){var t=document.getElementById('checkoutToast');if(t){if(checkoutResult==='success'){t.style.background='#1a472a';t.style.color='#2ecc71';t.textContent='✓ Order confirmed — check your email for details';}else{t.style.background='#2c1515';t.style.color='#e74c3c';t.textContent='Checkout cancelled.';}t.style.display='block';setTimeout(function(){t.style.opacity='0';setTimeout(function(){t.style.display='none';},400);},5000);}window.history.replaceState({},'',window.location.pathname);}
   var savedEmail=localStorage.getItem('cv_current_user');
   if(savedEmail){var users=loadUsers();if(users[savedEmail]){currentUser=users[savedEmail];if(currentUser.basket&&currentUser.basket.length>0){cart=[].concat(currentUser.basket);renderBasket();}updateNavAuth();}}
