@@ -1062,7 +1062,7 @@ async function confirmCancelSubscription(){
 }
 
 function showPage(n){
-  if(n==='store'&&(!currentUser||currentUser.email!=='marcelaug28@gmail.com')){document.getElementById('authOverlay').classList.add('open');return;}
+  if(n==='store'&&(!currentUser||currentUser.email!=='marcelaug28@gmail.com'))return;
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-links a').forEach(a=>a.classList.remove('active'));
   var pg=document.getElementById(n);if(pg)pg.classList.add('active');
