@@ -71,13 +71,13 @@ function toFormData(obj, prefix = '') {
         if (typeof item === 'object') {
           parts.push(...toFormData(item, `${key}[${i}]`).split('&'));
         } else {
-          parts.push(`${encodeURIComponent(`${key}[${i}]`)}=${encodeURIComponent(item)}`);
+          parts.push(`${key}[${i}]=${encodeURIComponent(item)}`);
         }
       });
     } else if (typeof v === 'object' && v !== null) {
-      parts.push(toFormData(v, key));
+      parts.push(...toFormData(v, key).split('&'));
     } else {
-      parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(v)}`);
+      parts.push(`${key}=${encodeURIComponent(v)}`);
     }
   }
   return parts.join('&');
