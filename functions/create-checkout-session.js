@@ -18,26 +18,23 @@ export async function onRequestPost({ request, env }) {
     const mode = hasSub ? 'subscription' : 'payment';
     const siteUrl = env.SITE_URL || 'https://clearvision.ink';
 
-    const line_items = items.map(item => {
-      const recurring = isSubscription(item.name);
-      const priceData = {
-        currency: 'gbp',
-        product_data: { name: item.name },
-        unit_amount: Math.round(item.price * 100)
-      };
-      if (recurring) priceData.recurring = { interval: 'month' };
-      return { price_data: priceData, quantity: 1 };
+    const params = new URLSearchParams();
+    params.set('mode', mode);
+    params.set('success_url', `${siteUrl}/?checkout=success`);
+    params.set('cancel_url', `${siteUrl}/?checkout=cancel`);
+
+    items.forEach((item, i) => {
+      const sub = isSubscription(item.name);
+      params.set(`line_items[${i}][quantity]`, '1');
+      params.set(`line_items[${i}][price_data][currency]`, 'gbp');
+      params.set(`line_items[${i}][price_data][unit_amount]`, String(Math.round(item.price * 100)));
+      params.set(`line_items[${i}][price_data][product_data][name]`, item.name);
+      if (sub) params.set(`line_items[${i}][price_data][recurring][interval]`, 'month');
     });
 
-    const body = {
-      mode,
-      line_items,
-      success_url: `${siteUrl}/?checkout=success`,
-      cancel_url: `${siteUrl}/?checkout=cancel`
-    };
-
     if (mode === 'payment') {
-      body.shipping_address_collection = { allowed_countries: ['GB', 'IE', 'US', 'CA', 'AU', 'NZ', 'FR', 'DE', 'ES', 'IT', 'NL'] };
+      const countries = ['GB','IE','US','CA','AU','NZ','FR','DE','ES','IT','NL'];
+      countries.forEach((c, i) => params.set(`shipping_address_collection[allowed_countries][${i}]`, c));
     }
 
     const res = await fetch('https://api.stripe.com/v1/checkout/sessions', {
@@ -46,7 +43,7 @@ export async function onRequestPost({ request, env }) {
         'Authorization': `Bearer ${env.STRIPE_SECRET_KEY}`,
         'Content-Type': 'application/x-www-form-urlencoded'
       },
-      body: toFormData(body)
+      body: params.toString()
     });
 
     const session = await res.json();
@@ -60,25 +57,4 @@ export async function onRequestPost({ request, env }) {
 
 export async function onRequestOptions() {
   return new Response(null, { status: 200, headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type' } });
-}
-
-function toFormData(obj, prefix = '') {
-  const parts = [];
-  for (const [k, v] of Object.entries(obj)) {
-    const key = prefix ? `${prefix}[${k}]` : k;
-    if (Array.isArray(v)) {
-      v.forEach((item, i) => {
-        if (typeof item === 'object') {
-          parts.push(...toFormData(item, `${key}[${i}]`).split('&'));
-        } else {
-          parts.push(`${key}[${i}]=${encodeURIComponent(item)}`);
-        }
-      });
-    } else if (typeof v === 'object' && v !== null) {
-      parts.push(...toFormData(v, key).split('&'));
-    } else {
-      parts.push(`${key}=${encodeURIComponent(v)}`);
-    }
-  }
-  return parts.join('&');
 }
