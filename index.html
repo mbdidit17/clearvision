@@ -1375,7 +1375,7 @@ document.addEventListener('DOMContentLoaded',function(){
   // Checkout result toast
   var urlParams=new URLSearchParams(window.location.search);
   var checkoutResult=urlParams.get('checkout');
-  if(checkoutResult){var t=document.getElementById('checkoutToast');if(t){if(checkoutResult==='success'){t.style.background='#1a472a';t.style.color='#2ecc71';t.textContent='✓ Order confirmed — check your email for details';}else{t.style.background='#2c1515';t.style.color='#e74c3c';t.textContent='Checkout cancelled — your basket is still saved';}t.style.display='block';setTimeout(function(){t.style.opacity='0';setTimeout(function(){t.style.display='none';},400);},5000);}window.history.replaceState({},'',window.location.pathname);}
+  if(checkoutResult){var t=document.getElementById('checkoutToast');if(t){if(checkoutResult==='success'){t.style.background='#1a472a';t.style.color='#2ecc71';t.textContent='✓ Order confirmed — check your email for details';}else{t.style.background='#2c1515';t.style.color='#e74c3c';t.textContent='Checkout cancelled.';}t.style.display='block';setTimeout(function(){t.style.opacity='0';setTimeout(function(){t.style.display='none';},400);},5000);}window.history.replaceState({},'',window.location.pathname);}
   var savedEmail=localStorage.getItem('cv_current_user');
   if(savedEmail){var users=loadUsers();if(users[savedEmail]){currentUser=users[savedEmail];if(currentUser.basket&&currentUser.basket.length>0){cart=[].concat(currentUser.basket);renderBasket();}updateNavAuth();}}
   var pageParam=new URLSearchParams(window.location.search).get('page');
