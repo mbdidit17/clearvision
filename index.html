@@ -358,7 +358,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:cen
     <span class="logo-text">Clear Vision</span>
   </div>
   <div class="boxes">
-    <div class="box" onclick="showPage('coaching')"><span class="box-title">Coaching</span><span class="box-sub">Coming Soon</span></div>
+    <div class="box" onclick="showPage('coaching')"><span class="box-title">Coaching</span><span class="box-sub">Now Available</span></div>
     <div class="box" onclick="showPage('store')"><span class="box-title">Store</span><span class="box-sub">Coming Soon</span></div>
     <div class="box" onclick="showPage('story')"><span class="box-title">My Story</span><span class="box-sub">The Journey</span></div>
     <div class="box" style="cursor:default;"><span class="box-title">Results</span><span class="box-sub">Transformations</span></div>
@@ -1075,7 +1075,7 @@ function showPage(n){
   if(n==='admin')renderAdminStats();
   var ft=document.getElementById('siteFooter');if(ft)ft.style.display='block';
   var nl=document.getElementById('nav-links');if(nl)nl.style.display=n==='home'?'none':'flex';
-  history.replaceState(null,'',n==='home'?window.location.pathname:'?page='+n);
+  history.pushState({page:n},'',n==='home'?window.location.pathname:'?page='+n);
 }
 
 var packages={foundation:{tag:'Online Coaching',title:'Foundation',price:'£60<span>/mo</span>',priceNum:60,desc:"The Foundation plan is built for anyone ready to take their nutrition seriously. Custom cut or bulk plan, macros, calories, meal structure — all built around you.",features:['Custom cut or bulk nutrition plan','Macro & calorie targets set for your goal','Ongoing nutrition advice via text','Plan adjusted as you progress']},enhanced:{tag:'Online Coaching — Enhanced',title:'Enhanced',price:'£100<span>/mo</span>',priceNum:100,desc:'The Enhanced plan is for those who are genuinely serious. Everything in Foundation plus a fully periodised training programme.',features:['Everything in Foundation','Full personalised training plan','Advanced programming & periodisation','Detailed nutrition targets & adjustments','Plans updated as you progress']}};
@@ -1380,6 +1380,7 @@ document.addEventListener('DOMContentLoaded',function(){
   var pageParam=new URLSearchParams(window.location.search).get('page');
   if(pageParam&&document.getElementById(pageParam)){showPage(pageParam);}else{showPage('home');}
   document.addEventListener('click',function(e){var btn=document.getElementById('nav-profile-btn');if(btn&&!btn.contains(e.target))btn.classList.remove('open');});
+  window.addEventListener('popstate',function(e){var p=e.state&&e.state.page?e.state.page:new URLSearchParams(window.location.search).get('page')||'home';showPage(p);});
 });
 </script>
 </body>
