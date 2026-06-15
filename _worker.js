@@ -32,18 +32,15 @@ function safeUser(u) { const { passwordHash, ...rest } = u; return rest; }
 // ── AUTH ENDPOINTS ──
 async function handleAuthRegister(request, env) {
   try {
-    const { email, password, name, migrate } = await request.json();
-    if (!email || !password) return new Response(JSON.stringify({ error: 'Email and password required' }), { status: 400, headers: CORS });
-    if (!migrate) {
-      const ex = await env.CV_USERS.get('user:' + email);
-      if (ex) return new Response(JSON.stringify({ error: 'An account with this email already exists.' }), { status: 409, headers: CORS });
-    }
+    const { email, password, name } = await request.json();
+    if (!email || !password || !name) return new Response(JSON.stringify({ error: 'All fields required' }), { status: 400, headers: CORS });
+    if (email.length > 254 || password.length > 128 || name.length > 100) return new Response(JSON.stringify({ error: 'Input too long' }), { status: 400, headers: CORS });
+    if (password.length < 6) return new Response(JSON.stringify({ error: 'Password too short' }), { status: 400, headers: CORS });
+    const ex = await env.CV_USERS.get('user:' + email);
+    if (ex) return new Response(JSON.stringify({ error: 'An account with this email already exists.' }), { status: 409, headers: CORS });
     const passwordHash = await hashPw(password);
     const joined = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-    const existing = migrate ? JSON.parse(await env.CV_USERS.get('user:' + email) || 'null') : null;
-    const user = existing
-      ? { ...existing, passwordHash }
-      : { email, name: name || '', passwordHash, orders: [], subscriptions: [], basket: [], joined, coachingApplication: [] };
+    const user = { email, name, passwordHash, orders: [], subscriptions: [], basket: [], joined, coachingApplication: [] };
     await env.CV_USERS.put('user:' + email, JSON.stringify(user));
     const token = genToken();
     await env.CV_USERS.put('session:' + token, JSON.stringify({ email }), { expirationTtl: 30 * 24 * 3600 });
@@ -57,6 +54,7 @@ async function handleAuthLogin(request, env) {
   try {
     const { email, password } = await request.json();
     if (!email || !password) return new Response(JSON.stringify({ error: 'Email and password required' }), { status: 400, headers: CORS });
+    if (email.length > 254 || password.length > 128) return new Response(JSON.stringify({ error: 'Input too long' }), { status: 400, headers: CORS });
     const raw = await env.CV_USERS.get('user:' + email);
     if (!raw) return new Response(JSON.stringify({ error: 'No account found with this email.' }), { status: 404, headers: CORS });
     const user = JSON.parse(raw);

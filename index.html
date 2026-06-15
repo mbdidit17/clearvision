@@ -1051,7 +1051,6 @@ async function submitAuth(){
       var d=await r.json();
       if(d.error){
         // migration: if not found in KV but exists in localStorage with correct password, migrate
-        if(r.status===404){var lu=loadUsers();if(lu[email]&&lu[email].password===password){var mr=await fetch('/functions/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,password:password,name:lu[email].name,migrate:true})});var md=await mr.json();if(!md.error){setSession(md.user,md.sessionToken);if(currentUser.basket&&currentUser.basket.length>0){cart=currentUser.basket.concat(cart);renderBasket();}updateNavAuth();closeAuth();btn.textContent='Sign In';return;}}}
         err.textContent=d.error;btn.textContent='Sign In';return;
       }
       setSession(d.user,d.sessionToken);
@@ -1339,6 +1338,8 @@ async function getAllUsers(){
   try{var r=await fetch('/functions/auth/admin?email='+encodeURIComponent(currentUser.email)+'&token='+encodeURIComponent(cvSessionToken));var d=await r.json();return d.users||[];}catch(e){return[];}
 }
 
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
 async function renderAdminStats(){
   var users=await getAllUsers();
   var allOrders=users.reduce(function(a,u){return a.concat(u.orders||[]);}, []);
@@ -1371,7 +1372,7 @@ async function renderAdminContent(){
     rows.sort(function(a,b){return b.id>a.id?1:-1;});
     if(!rows.length){el.innerHTML='<p style="color:rgba(255,255,255,0.3);font-size:0.85rem;">No orders yet.</p>';return;}
     el.innerHTML='<table class="admin-table"><thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Items</th><th>Total</th></tr></thead><tbody>'+
-      rows.map(function(r){return'<tr><td style="color:#fff;font-weight:600;">#'+r.id+'</td><td>'+r.date+'</td><td><div>'+r.name+'</div><div style="color:rgba(255,255,255,0.35);font-size:0.75rem;">'+r.email+'</div></td><td>'+r.items.map(function(i){return i.name;}).join('<br/>')+'</td><td style="color:var(--purple-bright);font-weight:600;">'+r.total+'</td></tr>';}).join('')+
+      rows.map(function(r){return'<tr><td style="color:#fff;font-weight:600;">#'+escHtml(r.id)+'</td><td>'+escHtml(r.date)+'</td><td><div>'+escHtml(r.name)+'</div><div style="color:rgba(255,255,255,0.35);font-size:0.75rem;">'+escHtml(r.email)+'</div></td><td>'+r.items.map(function(i){return escHtml(i.name);}).join('<br/>')+'</td><td style="color:var(--purple-bright);font-weight:600;">'+escHtml(r.total)+'</td></tr>';}).join('')+
     '</tbody></table>';
   }
 
@@ -1380,7 +1381,7 @@ async function renderAdminContent(){
     el.innerHTML='<table class="admin-table"><thead><tr><th>Name</th><th>Email</th><th>Orders</th><th>Subscriptions</th><th>Joined</th></tr></thead><tbody>'+
       users.map(function(u){
         var subs=(u.subscriptions||[]).filter(function(s){return s.status==='active';});
-        return'<tr><td style="color:#fff;">'+(u.name||'—')+'</td><td style="color:rgba(255,255,255,0.5);">'+u.email+'</td><td>'+(u.orders||[]).length+'</td><td>'+(subs.length?subs.map(function(s){return'<span class="admin-badge active">'+s.name+'</span>';}).join(' '):'<span style="color:rgba(255,255,255,0.25);">None</span>')+'</td><td style="color:rgba(255,255,255,0.4);">'+(u.joined||'—')+'</td></tr>';
+        return'<tr><td style="color:#fff;">'+escHtml(u.name||'—')+'</td><td style="color:rgba(255,255,255,0.5);">'+escHtml(u.email)+'</td><td>'+(u.orders||[]).length+'</td><td>'+(subs.length?subs.map(function(s){return'<span class="admin-badge active">'+escHtml(s.name)+'</span>';}).join(' '):'<span style="color:rgba(255,255,255,0.25);">None</span>')+'</td><td style="color:rgba(255,255,255,0.4);">'+escHtml(u.joined||'—')+'</td></tr>';
       }).join('')+
     '</tbody></table>';
   }
@@ -1394,7 +1395,7 @@ async function renderAdminContent(){
     });
     if(!apps.length){el.innerHTML='<p style="color:rgba(255,255,255,0.3);font-size:0.85rem;">No applications yet.</p>';return;}
     el.innerHTML='<table class="admin-table"><thead><tr><th>Date</th><th>Customer</th><th>Package</th><th>Goal</th><th>Experience</th><th>Days</th><th>Notes</th></tr></thead><tbody>'+
-      apps.map(function(r){return'<tr><td>'+r.app.date+'</td><td><div>'+r.name+'</div><div style="color:rgba(255,255,255,0.35);font-size:0.75rem;">'+r.email+'</div></td><td style="color:var(--purple-bright);">'+r.app.package+'</td><td>'+r.app.goal+'</td><td>'+r.app.experience+'</td><td>'+r.app.days+'</td><td style="color:rgba(255,255,255,0.4);">'+(r.app.notes||'—')+'</td></tr>';}).join('')+
+      apps.map(function(r){return'<tr><td>'+escHtml(r.app.date)+'</td><td><div>'+escHtml(r.name)+'</div><div style="color:rgba(255,255,255,0.35);font-size:0.75rem;">'+escHtml(r.email)+'</div></td><td style="color:var(--purple-bright);">'+escHtml(r.app.package)+'</td><td>'+escHtml(r.app.goal)+'</td><td>'+escHtml(r.app.experience)+'</td><td>'+escHtml(r.app.days)+'</td><td style="color:rgba(255,255,255,0.4);">'+escHtml(r.app.notes||'—')+'</td></tr>';}).join('')+
     '</tbody></table>';
   }
 }
