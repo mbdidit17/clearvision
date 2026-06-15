@@ -13,9 +13,27 @@ const CORS_PREFLIGHT = new Response(null, { status: 200, headers: {
 }});
 
 // ── AUTH HELPERS ──
-async function hashPw(password) {
+async function hashPw(password, saltHex) {
+  const te = new TextEncoder();
+  const saltBytes = saltHex
+    ? new Uint8Array(saltHex.match(/.{2}/g).map(b => parseInt(b, 16)))
+    : crypto.getRandomValues(new Uint8Array(16));
+  const saltStr = Array.from(saltBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+  const key = await crypto.subtle.importKey('raw', te.encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: saltBytes, iterations: 100000, hash: 'SHA-256' }, key, 256);
+  const hash = Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2, '0')).join('');
+  return `pbkdf2:${saltStr}:${hash}`;
+}
+async function legacySha256(password) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+async function verifyPw(password, stored) {
+  if (!stored || !stored.startsWith('pbkdf2:')) {
+    return { valid: (await legacySha256(password)) === stored, legacy: true };
+  }
+  const saltHex = stored.split(':')[1];
+  return { valid: (await hashPw(password, saltHex)) === stored, legacy: false };
 }
 function genToken() {
   const b = new Uint8Array(24); crypto.getRandomValues(b);
@@ -50,7 +68,7 @@ async function handleAuthRegister(request, env) {
     if (ex) return new Response(JSON.stringify({ error: 'An account with this email already exists.' }), { status: 409, headers: CORS });
     const passwordHash = await hashPw(password);
     const joined = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-    const user = { email, name, passwordHash, orders: [], subscriptions: [], basket: [], joined, coachingApplication: [] };
+    const user = { email, name, passwordHash, orders:[], subscriptions:[], basket:[], joined, coachingApplication:[] };
     await env.CV_USERS.put('user:' + email, JSON.stringify(user));
     const token = genToken();
     await env.CV_USERS.put('session:' + token, JSON.stringify({ email }), { expirationTtl: 30 * 24 * 3600 });
@@ -69,7 +87,9 @@ async function handleAuthLogin(request, env) {
     const raw = await env.CV_USERS.get('user:' + email);
     if (!raw) return new Response(JSON.stringify({ error: 'Invalid email or password.' }), { status: 401, headers: CORS });
     const user = JSON.parse(raw);
-    if (user.passwordHash !== await hashPw(password)) return new Response(JSON.stringify({ error: 'Invalid email or password.' }), { status: 401, headers: CORS });
+    const { valid, legacy } = await verifyPw(password, user.passwordHash);
+    if (!valid) return new Response(JSON.stringify({ error: 'Invalid email or password.' }), { status: 401, headers: CORS });
+    if (legacy) { user.passwordHash = await hashPw(password); await env.CV_USERS.put('user:' + email, JSON.stringify(user)); }
     const token = genToken();
     await env.CV_USERS.put('session:' + token, JSON.stringify({ email }), { expirationTtl: 30 * 24 * 3600 });
     return new Response(JSON.stringify({ user: safeUser(user), sessionToken: token }), { status: 200, headers: CORS });
@@ -85,7 +105,9 @@ async function handleAuthUpdate(request, env) {
     const raw = await env.CV_USERS.get('user:' + email);
     if (!raw) return new Response(JSON.stringify({ error: 'User not found' }), { status: 404, headers: CORS });
     const user = JSON.parse(raw);
-    const updated = { ...user, ...data, passwordHash: user.passwordHash };
+    const allowed = ['orders','subscriptions','basket','coachingApplication','name'];
+    const updated = { ...user };
+    for (const f of allowed) { if (data[f] !== undefined) updated[f] = data[f]; }
     await env.CV_USERS.put('user:' + email, JSON.stringify(updated));
     return new Response(JSON.stringify({ ok: true, user: safeUser(updated) }), { status: 200, headers: CORS });
   } catch (err) {
@@ -123,6 +145,16 @@ async function handleAuthAdmin(request, env) {
   }
 }
 
+async function handleAuthSignout(request, env) {
+  try {
+    const { sessionToken } = await request.json();
+    if (sessionToken) await env.CV_USERS.delete('session:' + sessionToken);
+    return new Response(JSON.stringify({ ok: true }), { status: 200, headers: CORS });
+  } catch (err) {
+    return new Response(JSON.stringify({ ok: true }), { status: 200, headers: CORS });
+  }
+}
+
 async function handleAuthResetPassword(request, env) {
   try {
     const { email, token, newPassword } = await request.json();
@@ -138,7 +170,7 @@ async function handleAuthResetPassword(request, env) {
     const raw = await env.CV_USERS.get('user:' + email);
     if (!raw) return new Response(JSON.stringify({ error: 'User not found' }), { status: 404, headers: CORS });
     const user = JSON.parse(raw);
-    user.passwordHash = await hashPw(newPassword);
+    user.passwordHash = await hashPw(newPassword); // PBKDF2
     await env.CV_USERS.put('user:' + email, JSON.stringify(user));
     return new Response(JSON.stringify({ ok: true }), { status: 200, headers: CORS });
   } catch (err) {
@@ -323,6 +355,7 @@ export default {
 
     if (request.method === 'POST') {
       if (path === '/functions/auth/register') return handleAuthRegister(request, env);
+      if (path === '/functions/auth/signout') return handleAuthSignout(request, env);
       if (path === '/functions/auth/login') return handleAuthLogin(request, env);
       if (path === '/functions/auth/update') return handleAuthUpdate(request, env);
       if (path === '/functions/auth/reset-password') return handleAuthResetPassword(request, env);
