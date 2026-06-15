@@ -8,10 +8,136 @@ const CORS = {
 
 const CORS_PREFLIGHT = new Response(null, { status: 200, headers: {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type'
 }});
 
+// ── AUTH HELPERS ──
+async function hashPw(password) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+function genToken() {
+  const b = new Uint8Array(24); crypto.getRandomValues(b);
+  return Array.from(b).map(x => x.toString(16).padStart(2, '0')).join('');
+}
+async function verifySession(token, email, env) {
+  if (!token || !email) return false;
+  const raw = await env.CV_USERS.get('session:' + token);
+  if (!raw) return false;
+  return JSON.parse(raw).email === email;
+}
+function safeUser(u) { const { passwordHash, ...rest } = u; return rest; }
+
+// ── AUTH ENDPOINTS ──
+async function handleAuthRegister(request, env) {
+  try {
+    const { email, password, name, migrate } = await request.json();
+    if (!email || !password) return new Response(JSON.stringify({ error: 'Email and password required' }), { status: 400, headers: CORS });
+    if (!migrate) {
+      const ex = await env.CV_USERS.get('user:' + email);
+      if (ex) return new Response(JSON.stringify({ error: 'An account with this email already exists.' }), { status: 409, headers: CORS });
+    }
+    const passwordHash = await hashPw(password);
+    const joined = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    const existing = migrate ? JSON.parse(await env.CV_USERS.get('user:' + email) || 'null') : null;
+    const user = existing
+      ? { ...existing, passwordHash }
+      : { email, name: name || '', passwordHash, orders: [], subscriptions: [], basket: [], joined, coachingApplication: [] };
+    await env.CV_USERS.put('user:' + email, JSON.stringify(user));
+    const token = genToken();
+    await env.CV_USERS.put('session:' + token, JSON.stringify({ email }), { expirationTtl: 30 * 24 * 3600 });
+    return new Response(JSON.stringify({ user: safeUser(user), sessionToken: token }), { status: 200, headers: CORS });
+  } catch (err) {
+    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: CORS });
+  }
+}
+
+async function handleAuthLogin(request, env) {
+  try {
+    const { email, password } = await request.json();
+    if (!email || !password) return new Response(JSON.stringify({ error: 'Email and password required' }), { status: 400, headers: CORS });
+    const raw = await env.CV_USERS.get('user:' + email);
+    if (!raw) return new Response(JSON.stringify({ error: 'No account found with this email.' }), { status: 404, headers: CORS });
+    const user = JSON.parse(raw);
+    if (user.passwordHash !== await hashPw(password)) return new Response(JSON.stringify({ error: 'Incorrect password.' }), { status: 401, headers: CORS });
+    const token = genToken();
+    await env.CV_USERS.put('session:' + token, JSON.stringify({ email }), { expirationTtl: 30 * 24 * 3600 });
+    return new Response(JSON.stringify({ user: safeUser(user), sessionToken: token }), { status: 200, headers: CORS });
+  } catch (err) {
+    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: CORS });
+  }
+}
+
+async function handleAuthUpdate(request, env) {
+  try {
+    const { email, sessionToken, data } = await request.json();
+    if (!await verifySession(sessionToken, email, env)) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: CORS });
+    const raw = await env.CV_USERS.get('user:' + email);
+    if (!raw) return new Response(JSON.stringify({ error: 'User not found' }), { status: 404, headers: CORS });
+    const user = JSON.parse(raw);
+    const updated = { ...user, ...data, passwordHash: user.passwordHash };
+    await env.CV_USERS.put('user:' + email, JSON.stringify(updated));
+    return new Response(JSON.stringify({ ok: true, user: safeUser(updated) }), { status: 200, headers: CORS });
+  } catch (err) {
+    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: CORS });
+  }
+}
+
+async function handleAuthGet(request, env) {
+  try {
+    const u = new URL(request.url);
+    const email = u.searchParams.get('email'), token = u.searchParams.get('token');
+    if (!await verifySession(token, email, env)) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: CORS });
+    const raw = await env.CV_USERS.get('user:' + email);
+    if (!raw) return new Response(JSON.stringify({ error: 'User not found' }), { status: 404, headers: CORS });
+    return new Response(JSON.stringify({ user: safeUser(JSON.parse(raw)) }), { status: 200, headers: CORS });
+  } catch (err) {
+    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: CORS });
+  }
+}
+
+async function handleAuthAdmin(request, env) {
+  try {
+    const u = new URL(request.url);
+    const email = u.searchParams.get('email'), token = u.searchParams.get('token');
+    if (!await verifySession(token, email, env) || email !== 'marcelaug28@gmail.com')
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: CORS });
+    const list = await env.CV_USERS.list({ prefix: 'user:' });
+    const users = await Promise.all(list.keys.map(async k => {
+      const raw = await env.CV_USERS.get(k.name);
+      return raw ? safeUser(JSON.parse(raw)) : null;
+    }));
+    return new Response(JSON.stringify({ users: users.filter(Boolean) }), { status: 200, headers: CORS });
+  } catch (err) {
+    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: CORS });
+  }
+}
+
+async function handleAuthResetPassword(request, env) {
+  try {
+    const { email, token, newPassword } = await request.json();
+    if (!email || !token || !newPassword) return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers: CORS });
+    const secret = env.RESET_SECRET || 'cv-reset-secret-change-me';
+    const [timestamp, hmac] = token.split('.');
+    const te = new TextEncoder();
+    const key = await crypto.subtle.importKey('raw', te.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const sig = await crypto.subtle.sign('HMAC', key, te.encode(email + ':' + timestamp));
+    const expected = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+    if (hmac !== expected || Date.now() - parseInt(timestamp) > 30 * 60 * 1000)
+      return new Response(JSON.stringify({ error: 'Invalid or expired token' }), { status: 401, headers: CORS });
+    const raw = await env.CV_USERS.get('user:' + email);
+    if (!raw) return new Response(JSON.stringify({ error: 'User not found' }), { status: 404, headers: CORS });
+    const user = JSON.parse(raw);
+    user.passwordHash = await hashPw(newPassword);
+    await env.CV_USERS.put('user:' + email, JSON.stringify(user));
+    return new Response(JSON.stringify({ ok: true }), { status: 200, headers: CORS });
+  } catch (err) {
+    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: CORS });
+  }
+}
+
+// ── EXISTING ENDPOINTS ──
 async function handleCheckout(request, env) {
   try {
     const { items } = await request.json();
@@ -181,7 +307,16 @@ export default {
 
     if (request.method === 'OPTIONS') return CORS_PREFLIGHT;
 
+    if (request.method === 'GET') {
+      if (path === '/functions/auth/user') return handleAuthGet(request, env);
+      if (path === '/functions/auth/admin') return handleAuthAdmin(request, env);
+    }
+
     if (request.method === 'POST') {
+      if (path === '/functions/auth/register') return handleAuthRegister(request, env);
+      if (path === '/functions/auth/login') return handleAuthLogin(request, env);
+      if (path === '/functions/auth/update') return handleAuthUpdate(request, env);
+      if (path === '/functions/auth/reset-password') return handleAuthResetPassword(request, env);
       if (path === '/functions/create-checkout-session') return handleCheckout(request, env);
       if (path === '/functions/create-portal-session') return handlePortal(request, env);
       if (path === '/functions/request-password-reset') return handlePasswordReset(request, env);

@@ -1015,25 +1015,61 @@ const STRIPE={'Foundation Coaching':'https://buy.stripe.com/cNi00b53QdZ78hpeZOgI
 
 // ── AUTH & USER SYSTEM ──
 var currentUser=null,authMode='signin',cancelTargetIndex=null;
+var cvSessionToken=localStorage.getItem('cv_session_token');
 function loadUsers(){try{return JSON.parse(localStorage.getItem('cv_users')||'{}');}catch(e){return{};}}
 function saveUsers(u){localStorage.setItem('cv_users',JSON.stringify(u));}
-function saveCurrentUser(user){if(!user){localStorage.removeItem('cv_current_user');return;}var u=loadUsers();u[user.email]=user;saveUsers(u);localStorage.setItem('cv_current_user',user.email);}
+function saveCurrentUser(user){
+  if(!user){localStorage.removeItem('cv_current_user');localStorage.removeItem('cv_session_token');cvSessionToken=null;return;}
+  localStorage.setItem('cv_current_user',JSON.stringify(user));
+  if(cvSessionToken){fetch('/functions/auth/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:user.email,sessionToken:cvSessionToken,data:{orders:user.orders||[],subscriptions:user.subscriptions||[],basket:user.basket||[],coachingApplication:user.coachingApplication||[],name:user.name}})}).catch(function(){});}
+}
+function setSession(user,token){currentUser=user;cvSessionToken=token;localStorage.setItem('cv_current_user',JSON.stringify(user));localStorage.setItem('cv_session_token',token);}
 function updateNavAuth(){var si=document.getElementById('nav-sign-in-btn'),pb=document.getElementById('nav-profile-btn');if(!si||!pb)return;if(currentUser){si.style.display='none';pb.style.display='flex';document.getElementById('nav-profile-initial').textContent=(currentUser.name||currentUser.email).charAt(0).toUpperCase();document.getElementById('nav-profile-name-label').textContent=currentUser.name||currentUser.email.split('@')[0];var al=document.getElementById('nav-admin-link');if(al)al.style.display=isAdmin()?'block':'none';}else{si.style.display='';pb.style.display='none';}}
-function signOut(){currentUser=null;localStorage.removeItem('cv_current_user');cart=[];renderBasket();updateNavAuth();showPage('home');}
+function signOut(){currentUser=null;cvSessionToken=null;localStorage.removeItem('cv_current_user');localStorage.removeItem('cv_session_token');cart=[];renderBasket();updateNavAuth();showPage('home');}
 function openAuth(mode){authMode=mode||'signin';document.getElementById('auth-error').textContent='';document.getElementById('auth-email').value='';document.getElementById('auth-password').value='';document.getElementById('auth-name').value='';applyAuthMode();document.getElementById('authOverlay').classList.add('open');}
 function closeAuth(){document.getElementById('authOverlay').classList.remove('open');}
 function closeAuthIfOutside(e){if(e.target===document.getElementById('authOverlay'))closeAuth();}
 function toggleAuthMode(){authMode=authMode==='signin'?'signup':'signin';document.getElementById('auth-error').textContent='';applyAuthMode();}
 function applyAuthMode(){var s=authMode==='signup';document.getElementById('auth-title').textContent=s?'Sign Up':'Sign In';document.getElementById('auth-sub').textContent=s?'Create your account':'Welcome back';document.getElementById('auth-btn-label').textContent=s?'Create Account':'Sign In';document.getElementById('auth-name-field').style.display=s?'block':'none';document.getElementById('auth-switch').innerHTML=s?'Already have an account? <a onclick="toggleAuthMode()">Sign In</a>':"Don't have an account? <a onclick=\"toggleAuthMode()\">Sign Up</a>";}
-function submitAuth(){var email=document.getElementById('auth-email').value.trim().toLowerCase(),password=document.getElementById('auth-password').value,err=document.getElementById('auth-error');err.textContent='';if(!email||!password){err.textContent='Please fill in all fields.';return;}if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){err.textContent='Please enter a valid email.';return;}var users=loadUsers();if(authMode==='signup'){var name=document.getElementById('auth-name').value.trim();if(!name){err.textContent='Please enter your name.';return;}if(password.length<6){err.textContent='Password must be at least 6 characters.';return;}if(users[email]){err.textContent='An account with this email already exists.';return;}users[email]={email:email,name:name,password:password,orders:[],subscriptions:[],basket:[],joined:new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})};saveUsers(users);currentUser=users[email];}else{if(!users[email]){err.textContent='No account found with this email.';return;}if(users[email].password!==password){err.textContent='Incorrect password.';return;}currentUser=users[email];}saveCurrentUser(currentUser);if(currentUser.basket&&currentUser.basket.length>0){cart=currentUser.basket.concat(cart);renderBasket();}updateNavAuth();closeAuth();}
+async function submitAuth(){
+  var email=document.getElementById('auth-email').value.trim().toLowerCase(),password=document.getElementById('auth-password').value,err=document.getElementById('auth-error'),btn=document.getElementById('auth-btn-label');
+  err.textContent='';
+  if(!email||!password){err.textContent='Please fill in all fields.';return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){err.textContent='Please enter a valid email.';return;}
+  btn.textContent='...';
+  try{
+    if(authMode==='signup'){
+      var name=document.getElementById('auth-name').value.trim();
+      if(!name){err.textContent='Please enter your name.';btn.textContent='Create Account';return;}
+      if(password.length<6){err.textContent='Password must be at least 6 characters.';btn.textContent='Create Account';return;}
+      var r=await fetch('/functions/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,password:password,name:name})});
+      var d=await r.json();
+      if(d.error){err.textContent=d.error;btn.textContent='Create Account';return;}
+      setSession(d.user,d.sessionToken);
+    }else{
+      var r=await fetch('/functions/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,password:password})});
+      var d=await r.json();
+      if(d.error){
+        // migration: if not found in KV but exists in localStorage with correct password, migrate
+        if(r.status===404){var lu=loadUsers();if(lu[email]&&lu[email].password===password){var mr=await fetch('/functions/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,password:password,name:lu[email].name,migrate:true})});var md=await mr.json();if(!md.error){setSession(md.user,md.sessionToken);if(currentUser.basket&&currentUser.basket.length>0){cart=currentUser.basket.concat(cart);renderBasket();}updateNavAuth();closeAuth();btn.textContent='Sign In';return;}}}
+        err.textContent=d.error;btn.textContent='Sign In';return;
+      }
+      setSession(d.user,d.sessionToken);
+    }
+    if(currentUser.basket&&currentUser.basket.length>0){cart=currentUser.basket.concat(cart);renderBasket();}
+    updateNavAuth();closeAuth();
+  }catch(e){err.textContent='Something went wrong. Try again.';btn.textContent=authMode==='signup'?'Create Account':'Sign In';}
+  btn.textContent=authMode==='signup'?'Create Account':'Sign In';
+}
 // ── FORGOT / RESET PASSWORD ──
 var resetEmail=null;
 function showForgotPassword(){closeAuth();document.getElementById('forgot-email').value='';document.getElementById('forgot-msg').textContent='';document.getElementById('forgot-btn-label').textContent='Send Reset Link';document.getElementById('forgotOverlay').classList.add('open');}
 function closeForgot(){document.getElementById('forgotOverlay').classList.remove('open');}
 function closeForgotIfOutside(e){if(e.target===document.getElementById('forgotOverlay'))closeForgot();}
 async function submitForgotPassword(){var email=document.getElementById('forgot-email').value.trim().toLowerCase(),msg=document.getElementById('forgot-msg'),btn=document.getElementById('forgot-btn-label');msg.style.color='#e55';msg.textContent='';if(!email){msg.textContent='Please enter your email.';return;}btn.textContent='Sending...';document.querySelector('#forgotOverlay .btn-purple').disabled=true;try{var res=await fetch('/functions/request-password-reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})});var data=await res.json();if(data.ok){msg.style.color='#4ade80';msg.textContent='Reset link sent — check your inbox.';btn.textContent='Sent';}else{throw new Error(data.error||'Failed to send');}}catch(err){msg.textContent=err.message;btn.textContent='Send Reset Link';document.querySelector('#forgotOverlay .btn-purple').disabled=false;}}
-async function checkResetToken(){var params=new URLSearchParams(window.location.search);var token=params.get('reset'),email=params.get('email');if(!token||!email)return;resetEmail=decodeURIComponent(email);try{var res=await fetch('/functions/verify-reset-token',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:decodeURIComponent(token),email:resetEmail})});var data=await res.json();if(data.valid){document.getElementById('reset-new-pw').value='';document.getElementById('reset-confirm-pw').value='';document.getElementById('reset-msg').textContent='';document.getElementById('resetOverlay').classList.add('open');window.history.replaceState({},'',window.location.pathname);}else{alert(data.error||'Reset link is invalid or expired.');}}catch(e){console.error(e);}}
-async function submitResetPassword(){var pw=document.getElementById('reset-new-pw').value,conf=document.getElementById('reset-confirm-pw').value,msg=document.getElementById('reset-msg'),btn=document.getElementById('reset-btn-label');msg.style.color='#e55';if(!pw||!conf){msg.textContent='Please fill in both fields.';return;}if(pw.length<6){msg.textContent='Password must be at least 6 characters.';return;}if(pw!==conf){msg.textContent='Passwords do not match.';return;}var users=loadUsers();if(!users[resetEmail]){msg.textContent='Account not found.';return;}users[resetEmail].password=pw;saveUsers(users);document.getElementById('resetOverlay').classList.remove('open');resetEmail=null;msg.style.color='#4ade80';msg.textContent='';openAuth('signin');document.getElementById('auth-sub').textContent='Password updated — sign in';}
+var resetToken=null;
+async function checkResetToken(){var params=new URLSearchParams(window.location.search);var token=params.get('reset'),email=params.get('email');if(!token||!email)return;resetEmail=decodeURIComponent(email);resetToken=decodeURIComponent(token);try{var res=await fetch('/functions/verify-reset-token',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:resetToken,email:resetEmail})});var data=await res.json();if(data.valid){document.getElementById('reset-new-pw').value='';document.getElementById('reset-confirm-pw').value='';document.getElementById('reset-msg').textContent='';document.getElementById('resetOverlay').classList.add('open');window.history.replaceState({},'',window.location.pathname);}else{alert(data.error||'Reset link is invalid or expired.');}}catch(e){console.error(e);}}
+async function submitResetPassword(){var pw=document.getElementById('reset-new-pw').value,conf=document.getElementById('reset-confirm-pw').value,msg=document.getElementById('reset-msg'),btn=document.getElementById('reset-btn-label');msg.style.color='#e55';if(!pw||!conf){msg.textContent='Please fill in both fields.';return;}if(pw.length<6){msg.textContent='Password must be at least 6 characters.';return;}if(pw!==conf){msg.textContent='Passwords do not match.';return;}btn.textContent='Saving...';try{var r=await fetch('/functions/auth/reset-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:resetEmail,token:resetToken,newPassword:pw})});var d=await r.json();if(!d.ok){msg.textContent=d.error||'Failed to reset password.';btn.textContent='Set New Password';return;}}catch(e){msg.textContent='Something went wrong.';btn.textContent='Set New Password';return;}document.getElementById('resetOverlay').classList.remove('open');resetEmail=null;resetToken=null;openAuth('signin');document.getElementById('auth-sub').textContent='Password updated — sign in';}
 
 function toggleProfileDropdown(e){e.stopPropagation();document.getElementById('nav-profile-btn').classList.toggle('open');}
 function closeProfileDropdown(){document.getElementById('nav-profile-btn').classList.remove('open');}
@@ -1298,10 +1334,13 @@ function switchAdminTab(tab){
   renderAdminContent();
 }
 
-function getAllUsers(){return Object.values(loadUsers());}
+async function getAllUsers(){
+  if(!cvSessionToken||!currentUser)return[];
+  try{var r=await fetch('/functions/auth/admin?email='+encodeURIComponent(currentUser.email)+'&token='+encodeURIComponent(cvSessionToken));var d=await r.json();return d.users||[];}catch(e){return[];}
+}
 
-function renderAdminStats(){
-  var users=getAllUsers();
+async function renderAdminStats(){
+  var users=await getAllUsers();
   var allOrders=users.reduce(function(a,u){return a.concat(u.orders||[]);}, []);
   var allSubs=users.reduce(function(a,u){return a.concat(u.subscriptions||[]);}, []);
   var activeSubs=allSubs.filter(function(s){return s.status==='active';});
@@ -1316,10 +1355,11 @@ function renderAdminStats(){
   ].map(function(s){return'<div class="admin-stat-card"><div class="admin-stat-val">'+s.val+'</div><div class="admin-stat-label">'+s.label+'</div></div>';}).join('');
 }
 
-function renderAdminContent(){
+async function renderAdminContent(){
   var el=document.getElementById('admin-content');
   if(!el)return;
-  var users=getAllUsers();
+  el.innerHTML='<p style="color:rgba(255,255,255,0.3);font-size:0.85rem;">Loading...</p>';
+  var users=await getAllUsers();
 
   if(adminTab==='orders'){
     var rows=[];
@@ -1371,8 +1411,8 @@ document.addEventListener('DOMContentLoaded',function(){
   var checkoutResult=urlParams.get('checkout');
   if(checkoutResult==='success'){var pending=sessionStorage.getItem('cv_pending_order');if(pending){try{var po=JSON.parse(pending);var users=loadUsers();var ue=po.email;if(ue&&users[ue]){users[ue].orders=users[ue].orders||[];users[ue].orders.push({id:po.id,date:po.date,items:po.items,total:po.total});var coachingItems=po.items.filter(function(i){return/coaching/i.test(i.name);});if(coachingItems.length){users[ue].subscriptions=users[ue].subscriptions||[];coachingItems.forEach(function(item){users[ue].subscriptions.push({name:item.name,price:item.price,startDate:po.date,status:'active'});});}localStorage.setItem('cv_users',JSON.stringify(users));if(currentUser&&currentUser.email===ue){currentUser=users[ue];}}}catch(e){}sessionStorage.removeItem('cv_pending_order');}}
   if(checkoutResult){var t=document.getElementById('checkoutToast');if(t){if(checkoutResult==='success'){t.style.background='#1a472a';t.style.color='#2ecc71';t.textContent='✓ Order confirmed — check your email for details';}else{t.style.background='#2c1515';t.style.color='#e74c3c';t.textContent='Checkout cancelled.';}t.style.display='block';setTimeout(function(){t.style.opacity='0';setTimeout(function(){t.style.display='none';},400);},5000);}window.history.replaceState({},'',window.location.pathname);}
-  var savedEmail=localStorage.getItem('cv_current_user');
-  if(savedEmail){var users=loadUsers();if(users[savedEmail]){currentUser=users[savedEmail];if(currentUser.basket&&currentUser.basket.length>0){cart=[].concat(currentUser.basket);renderBasket();}updateNavAuth();}}
+  var savedUserJson=localStorage.getItem('cv_current_user');
+  if(savedUserJson&&cvSessionToken){try{var savedUser=JSON.parse(savedUserJson);currentUser=savedUser;if(currentUser.basket&&currentUser.basket.length>0){cart=[].concat(currentUser.basket);renderBasket();}updateNavAuth();fetch('/functions/auth/user?email='+encodeURIComponent(savedUser.email)+'&token='+encodeURIComponent(cvSessionToken)).then(function(r){return r.json();}).then(function(d){if(d.user){currentUser=d.user;localStorage.setItem('cv_current_user',JSON.stringify(d.user));updateNavAuth();}else{currentUser=null;localStorage.removeItem('cv_current_user');localStorage.removeItem('cv_session_token');cvSessionToken=null;updateNavAuth();}}).catch(function(){});}catch(e){}}
   var pageParam=new URLSearchParams(window.location.search).get('page');
   if(pageParam&&document.getElementById(pageParam)){showPage(pageParam);}else{showPage('home');}
   document.addEventListener('click',function(e){var btn=document.getElementById('nav-profile-btn');if(btn&&!btn.contains(e.target))btn.classList.remove('open');});
