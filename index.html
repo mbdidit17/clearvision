@@ -1414,7 +1414,7 @@ document.addEventListener('DOMContentLoaded',function(){
   var savedUserJson=localStorage.getItem('cv_current_user');
   if(savedUserJson&&cvSessionToken){try{var savedUser=JSON.parse(savedUserJson);currentUser=savedUser;if(currentUser.basket&&currentUser.basket.length>0){cart=[].concat(currentUser.basket);renderBasket();}updateNavAuth();fetch('/functions/auth/user?email='+encodeURIComponent(savedUser.email)+'&token='+encodeURIComponent(cvSessionToken)).then(function(r){return r.json();}).then(function(d){if(d.user){currentUser=d.user;localStorage.setItem('cv_current_user',JSON.stringify(d.user));updateNavAuth();}else{currentUser=null;localStorage.removeItem('cv_current_user');localStorage.removeItem('cv_session_token');cvSessionToken=null;updateNavAuth();}}).catch(function(){});}catch(e){}}
   var pageParam=new URLSearchParams(window.location.search).get('page');
-  if(pageParam&&document.getElementById(pageParam)){showPage(pageParam);}else{showPage('home');}
+  if(pageParam==='admin'&&!isAdmin()){showPage('home');}else if(pageParam&&document.getElementById(pageParam)){showPage(pageParam);}else{showPage('home');}
   document.addEventListener('click',function(e){var btn=document.getElementById('nav-profile-btn');if(btn&&!btn.contains(e.target))btn.classList.remove('open');});
   window.addEventListener('popstate',function(e){var p=e.state&&e.state.page?e.state.page:new URLSearchParams(window.location.search).get('page')||'home';showPage(p);});
 });
