@@ -28,6 +28,15 @@ async function verifySession(token, email, env) {
   return JSON.parse(raw).email === email;
 }
 function safeUser(u) { const { passwordHash, ...rest } = u; return rest; }
+async function rateLimit(env, key, max, windowSecs) {
+  const k = 'rl:' + key;
+  const raw = await env.CV_USERS.get(k);
+  const data = raw ? JSON.parse(raw) : { count: 0, reset: Date.now() + windowSecs * 1000 };
+  if (Date.now() > data.reset) { data.count = 0; data.reset = Date.now() + windowSecs * 1000; }
+  data.count++;
+  await env.CV_USERS.put(k, JSON.stringify(data), { expirationTtl: windowSecs });
+  return data.count > max;
+}
 
 // ── AUTH ENDPOINTS ──
 async function handleAuthRegister(request, env) {
@@ -36,6 +45,7 @@ async function handleAuthRegister(request, env) {
     if (!email || !password || !name) return new Response(JSON.stringify({ error: 'All fields required' }), { status: 400, headers: CORS });
     if (email.length > 254 || password.length > 128 || name.length > 100) return new Response(JSON.stringify({ error: 'Input too long' }), { status: 400, headers: CORS });
     if (password.length < 6) return new Response(JSON.stringify({ error: 'Password too short' }), { status: 400, headers: CORS });
+    if (await rateLimit(env, 'reg:' + email, 5, 3600)) return new Response(JSON.stringify({ error: 'Too many attempts. Try again later.' }), { status: 429, headers: CORS });
     const ex = await env.CV_USERS.get('user:' + email);
     if (ex) return new Response(JSON.stringify({ error: 'An account with this email already exists.' }), { status: 409, headers: CORS });
     const passwordHash = await hashPw(password);
@@ -55,10 +65,11 @@ async function handleAuthLogin(request, env) {
     const { email, password } = await request.json();
     if (!email || !password) return new Response(JSON.stringify({ error: 'Email and password required' }), { status: 400, headers: CORS });
     if (email.length > 254 || password.length > 128) return new Response(JSON.stringify({ error: 'Input too long' }), { status: 400, headers: CORS });
+    if (await rateLimit(env, 'login:' + email, 5, 900)) return new Response(JSON.stringify({ error: 'Too many attempts. Try again in 15 minutes.' }), { status: 429, headers: CORS });
     const raw = await env.CV_USERS.get('user:' + email);
-    if (!raw) return new Response(JSON.stringify({ error: 'No account found with this email.' }), { status: 404, headers: CORS });
+    if (!raw) return new Response(JSON.stringify({ error: 'Invalid email or password.' }), { status: 401, headers: CORS });
     const user = JSON.parse(raw);
-    if (user.passwordHash !== await hashPw(password)) return new Response(JSON.stringify({ error: 'Incorrect password.' }), { status: 401, headers: CORS });
+    if (user.passwordHash !== await hashPw(password)) return new Response(JSON.stringify({ error: 'Invalid email or password.' }), { status: 401, headers: CORS });
     const token = genToken();
     await env.CV_USERS.put('session:' + token, JSON.stringify({ email }), { expirationTtl: 30 * 24 * 3600 });
     return new Response(JSON.stringify({ user: safeUser(user), sessionToken: token }), { status: 200, headers: CORS });
