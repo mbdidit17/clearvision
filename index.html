@@ -34,35 +34,34 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:cen
 body.introgo .logo-aura{animation:auraBloom 3.2s ease forwards 0.1s;}
 .logo-box{position:relative;}
 .logo-wrap img{width:420px;max-width:80vw;display:block;position:relative;z-index:1;mix-blend-mode:screen;opacity:0;}
-body.introgo .logo-wrap img{animation:cvFadeIn 0.7s ease forwards 4.35s;}
+body.introgo .logo-wrap img{animation:cvFadeIn 0.7s ease forwards 5.1s;}
 .cv-svg{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;overflow:visible;}
-body.introgo .cv-svg{animation:cvOut 0.6s ease forwards 4.4s;}
+body.introgo .cv-svg{animation:cvOut 0.6s ease forwards 5.15s;}
 .cv-eye{transform-origin:516px 428px;}
-body.introgo .cv-eye{animation:cvBlink 1.35s cubic-bezier(0.33,1.15,0.5,1) forwards 1.7s;}
+body.introgo .cv-eye{animation:cvBlink 1.7s cubic-bezier(0.33,1.12,0.5,1) forwards 2s;}
 .cv-upper{clip-path:inset(-40px 100% -40px -40px);}
-body.introgo .cv-upper{animation:cvDraw 0.55s cubic-bezier(0.4,0,0.2,1) forwards 0.15s;}
-.cv-lowerlid{clip-path:inset(-40px -40px -40px 100%);transform-origin:645px 430px;}
-body.introgo .cv-lowerlid{animation:cvDraw 0.5s cubic-bezier(0.4,0,0.2,1) forwards 0.62s,cvFlick 0.3s cubic-bezier(0.34,1.6,0.64,1) 1.16s;}
+body.introgo .cv-upper{animation:cvDraw 0.7s cubic-bezier(0.4,0,0.2,1) forwards 0.2s;}
+.cv-lowerlid{clip-path:inset(-40px -40px -40px 100%);}
+body.introgo .cv-lowerlid{animation:cvDraw 0.65s cubic-bezier(0.4,0,0.2,1) forwards 0.75s;}
 .cv-sclera{opacity:0;}
-body.introgo .cv-sclera{animation:cvFadeIn 0.45s ease forwards 0.72s;}
+body.introgo .cv-sclera{animation:cvFadeIn 0.55s ease forwards 0.85s;}
 .cv-iris{opacity:0;transform:scale(0.7);transform-origin:512px 406px;}
-body.introgo .cv-iris{animation:cvPop 0.55s cubic-bezier(0.34,1.35,0.64,1) forwards 0.88s;}
+body.introgo .cv-iris{animation:cvPop 0.65s cubic-bezier(0.34,1.35,0.64,1) forwards 1.05s;}
 .cv-tail{clip-path:inset(-40px -40px -40px 100%);}
-body.introgo .cv-tail{animation:cvDraw 1.05s cubic-bezier(0.45,0,0.2,1) forwards 2.05s;}
+body.introgo .cv-tail{animation:cvDraw 1.28s cubic-bezier(0.45,0,0.2,1) forwards 2.42s;}
 .cv-spark{opacity:0;transform:scale(0);transform-origin:544px 374px;}
-body.introgo .cv-spark{animation:cvSpark 0.65s ease forwards 3.25s;}
+body.introgo .cv-spark{animation:cvSpark 0.7s ease forwards 3.85s;}
 .cv-text{opacity:0;transform:translateY(12px);}
-body.introgo .cv-text{animation:cvTextUp 0.8s ease forwards 3.05s;}
+body.introgo .cv-text{animation:cvTextUp 0.9s ease forwards 3.7s;}
 @keyframes cvFadeIn{to{opacity:1;}}
 @keyframes cvOut{to{opacity:0;}}
 @keyframes cvDraw{to{clip-path:inset(-40px -40px -40px -40px);}}
-@keyframes cvBlink{0%{transform:scaleY(1);}13%{transform:scaleY(0.045);}27%{transform:scaleY(0.045);}78%{transform:scaleY(1.045);}100%{transform:scaleY(1);}}
-@keyframes cvFlick{0%{transform:rotate(0deg);}45%{transform:rotate(-2.6deg);}100%{transform:rotate(0deg);}}
+@keyframes cvBlink{0%{transform:scaleY(1);}12%{transform:scaleY(0.045);}25%{transform:scaleY(0.045);}80%{transform:scaleY(1.04);}100%{transform:scaleY(1);}}
 @keyframes cvSpark{0%{opacity:0;transform:scale(0) rotate(-50deg);}40%{opacity:1;transform:scale(1.15) rotate(0deg);}70%{opacity:0.9;transform:scale(0.95) rotate(12deg);}100%{opacity:0;transform:scale(0.2) rotate(45deg);}}
 @keyframes cvPop{0%{opacity:0;transform:scale(0.7);}45%{opacity:1;}70%{transform:scale(1.06);}100%{opacity:1;transform:scale(1);}}
 @keyframes cvTextUp{to{opacity:1;transform:translateY(0);}}
 .logo-box::after{content:'';position:absolute;top:0;bottom:0;left:30%;width:40%;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,0.28) 50%,transparent 70%);mix-blend-mode:screen;transform:translateX(200%) rotate(6deg);opacity:0;z-index:3;pointer-events:none;}
-body.introgo .logo-box::after{animation:shineSweep 1.2s cubic-bezier(0.4,0,0.3,1) forwards 3.9s;}
+body.introgo .logo-box::after{animation:shineSweep 1.2s cubic-bezier(0.4,0,0.3,1) forwards 4.6s;}
 @keyframes auraBloom{0%{opacity:0;transform:translate(-50%,-58%) scale(0.5);}30%{opacity:0.25;transform:translate(-50%,-58%) scale(0.7);}60%{opacity:0.55;transform:translate(-50%,-58%) scale(0.9);}82%{opacity:1;transform:translate(-50%,-58%) scale(1.07);}100%{opacity:1;transform:translate(-50%,-58%) scale(1);}}
 @keyframes shineSweep{0%{transform:translateX(200%) rotate(6deg);opacity:0;}12%{opacity:1;}88%{opacity:1;}100%{transform:translateX(-260%) rotate(6deg);opacity:0;}}
 @media (prefers-reduced-motion:reduce){.logo-wrap img,.logo-aura,.logo-box::after,.cv-svg,.cv-eye,.cv-upper,.cv-lowerlid,.cv-sclera,.cv-iris,.cv-tail,.cv-spark,.cv-text{animation:none!important;}.logo-wrap img{opacity:1;}.cv-svg{display:none;}.logo-aura{opacity:1;}.logo-box::after{display:none;}}
