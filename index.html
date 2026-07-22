@@ -119,11 +119,18 @@ body.introgo .logo-box::after{animation:shineSweep 0.9s cubic-bezier(0.4,0,0.3,1
 #store{flex-direction:column;align-items:center;padding:8rem 2rem 5rem;}
 .store-header{text-align:center;margin-bottom:3.5rem;}
 .product-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0.9rem;background:transparent;width:100%;max-width:1000px;}
-.store-set-label{grid-column:1/-1;font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:0.2em;color:#fff;padding:2.5rem 0 0.8rem;border-top:1px solid rgba(110,40,180,0.2);margin-top:1.5rem;text-align:center;}
+.store-set-label{grid-column:1/-1;font-family:'Bebas Neue',sans-serif;font-size:2.1rem;letter-spacing:0.26em;color:#fff;padding:2.5rem 0 0.8rem;border-top:1px solid rgba(110,40,180,0.2);margin-top:1.5rem;text-align:center;}
 .store-set-label:first-child{border-top:none;margin-top:0;}
-.product{background:#0a0710;border:1px solid rgba(180,79,232,0.16);padding:2rem 1.5rem;cursor:pointer;transition:background 0.3s,transform 0.3s,box-shadow 0.3s,border-color 0.3s;position:relative;z-index:1;}
-.product:hover{background:#0a0a0a;transform:scale(1.06);z-index:10;box-shadow:0 0 40px rgba(110,40,180,0.3),0 8px 32px rgba(0,0,0,0.5);}
-.product-img{width:100%;aspect-ratio:1;background:#0d0d0d;border:1px solid rgba(110,40,180,0.2);display:flex;align-items:center;justify-content:center;margin-bottom:1rem;font-size:3rem;overflow:hidden;transition:border-color 0.3s;}
+.product{background:#0a0710;border:1px solid rgba(180,79,232,0.16);border-radius:14px;padding:1.3rem 1.3rem 1.6rem;cursor:pointer;transition:background 0.3s,box-shadow 0.4s cubic-bezier(0.2,0.6,0.3,1),border-color 0.3s,transform 0.4s cubic-bezier(0.2,0.6,0.3,1);position:relative;z-index:1;overflow:hidden;transform-style:preserve-3d;}
+.product::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(180,79,232,0.3),transparent 55%);opacity:0;transition:opacity 0.35s;pointer-events:none;z-index:0;}
+.product:hover::before{opacity:1;}
+.product:hover{background:#0a0a0a;z-index:10;box-shadow:0 26px 60px rgba(110,40,180,0.35),0 10px 34px rgba(0,0,0,0.55);}
+.product-grid .product:nth-child(3n+2){transition-delay:0.06s;}
+.product-grid .product:nth-child(3n){transition-delay:0.12s;}
+.product-name,.product-price,.quick-sizes,.qs-add-btn{position:relative;z-index:1;}
+.product-img{width:100%;aspect-ratio:1;background:#0d0d0d;border:1px solid rgba(110,40,180,0.2);border-radius:9px;display:flex;align-items:center;justify-content:center;margin-bottom:1rem;font-size:3rem;overflow:hidden;position:relative;z-index:1;transition:border-color 0.3s;}
+.product-img img{transition:transform 0.5s cubic-bezier(0.2,0.6,0.3,1);}
+.product:hover .product-img img{transform:scale(1.08);}
 .product:hover .product-img{border-color:rgba(110,40,180,0.5);}
 .product-name{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:0.08em;margin-bottom:0.3rem;color:#fff;}
 .product-price{font-size:0.85rem;color:rgba(255,255,255,0.4);margin-bottom:0.8rem;}
@@ -1501,56 +1508,102 @@ function initLightning(){
   var PAD=40;
   function resize(){canvas.width=parent.offsetWidth+PAD*2;canvas.height=parent.offsetHeight+PAD*2;canvas.style.top='-'+PAD+'px';canvas.style.left='-'+PAD+'px';}
   resize();window.addEventListener('resize',resize);
-  function wobbleSide(x1,y1,x2,y2,ox,oy,segCount,jag){
-    var dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy)||1,pts=[[x1,y1]];
-    for(var i=1;i<segCount;i++){var t=i/segCount,bx=x1+dx*t,by=y1+dy*t,out=Math.random()*jag,along=(Math.random()-0.5)*(len/segCount)*0.3;
-    pts.push([bx+ox*out+(dx/len)*along,by+oy*out+(dy/len)*along]);}
-    pts.push([x2,y2]);return pts;
-  }
-  function branchFrom(pt,ox,oy){
-    var ang=Math.atan2(oy,ox)+(Math.random()-0.5)*0.9,steps=2,pts=[pt],cx=pt[0],cy=pt[1],stepLen=4+Math.random()*4;
-    for(var i=0;i<steps;i++){cx+=Math.cos(ang)*stepLen;cy+=Math.sin(ang)*stepLen;pts.push([cx,cy]);ang+=(Math.random()-0.5)*0.5;stepLen*=0.75;}
-    return pts;
-  }
-  function buildBorder(w,h,off,jag){
-    var edges=[[-off,-off,w+off,-off,0,-1],[w+off,-off,w+off,h+off,1,0],[w+off,h+off,-off,h+off,0,1],[-off,h+off,-off,-off,-1,0]];
-    var mains=[],branches=[];
-    edges.forEach(function(e){
-      var segCount=6+Math.floor(Math.random()*3);
-      var pts=wobbleSide(e[0],e[1],e[2],e[3],e[4],e[5],segCount,jag);
-      mains.push(pts);
-      for(var i=1;i<pts.length-1;i++){if(Math.random()<0.16)branches.push(branchFrom(pts[i],e[4],e[5]));}
-    });
-    return{mains:mains,branches:branches};
-  }
-  var layers=[{data:{mains:[],branches:[]},lastRegen:0},{data:{mains:[],branches:[]},lastRegen:35},{data:{mains:[],branches:[]},lastRegen:70}];
   var hovered=false;parent.addEventListener('mouseenter',function(){hovered=true;});parent.addEventListener('mouseleave',function(){hovered=false;});
+
+  // true recursive midpoint-displacement: correlated fractal jag, not independent-per-point noise
+  function displace(x1,y1,x2,y2,off,depth,out){
+    if(depth<=0||off<0.7){out.push([x2,y2]);return;}
+    var dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy)||1;
+    var shift=(Math.random()*2-1)*off;
+    var mx=(x1+x2)/2+(-dy/len)*shift,my=(y1+y2)/2+(dx/len)*shift;
+    displace(x1,y1,mx,my,off*0.55,depth-1,out);
+    displace(mx,my,x2,y2,off*0.55,depth-1,out);
+  }
+  function boltPath(x1,y1,x2,y2,off,depth){var pts=[[x1,y1]];displace(x1,y1,x2,y2,off,depth,pts);return pts;}
+  function branchFrom(p,ang,len){var ex=p[0]+Math.cos(ang)*len,ey=p[1]+Math.sin(ang)*len;return boltPath(p[0],p[1],ex,ey,len*0.3,3);}
+
+  // one strike: a bolt riding a random stretch of one edge, with 1-2 forking branches
+  function newStrike(w,h,ts){
+    var edges=[[0,0,w,0],[w,0,w,h],[w,h,0,h],[0,h,0,0]];
+    var e=edges[Math.floor(Math.random()*4)];
+    var t0=Math.random()*0.55,t1=Math.min(1,t0+0.3+Math.random()*0.35);
+    var x1=e[0]+(e[2]-e[0])*t0,y1=e[1]+(e[3]-e[1])*t0;
+    var x2=e[0]+(e[2]-e[0])*t1,y2=e[1]+(e[3]-e[1])*t1;
+    var main=boltPath(x1,y1,x2,y2,13+Math.random()*9,5);
+    var branches=[];
+    var nb=1+Math.floor(Math.random()*2);
+    for(var b=0;b<nb;b++){
+      var idx=1+Math.floor(Math.random()*(main.length-2));
+      var prev=main[Math.max(0,idx-1)],p=main[idx];
+      var baseAng=Math.atan2(p[1]-prev[1],p[0]-prev[0]);
+      var side=Math.random()<0.5?-1:1;
+      branches.push(branchFrom(p,baseAng+side*(0.44+Math.random()*0.3),9+Math.random()*13));
+    }
+    return{main:main,branches:branches,born:ts,life:520+Math.random()*260};
+  }
+
   function smoothPath(pts){
     ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);
     for(var i=1;i<pts.length-1;i++){var mx=(pts[i][0]+pts[i+1][0])/2,my=(pts[i][1]+pts[i+1][1])/2;ctx.quadraticCurveTo(pts[i][0],pts[i][1],mx,my);}
     var last=pts[pts.length-1];ctx.lineTo(last[0],last[1]);
   }
   function strokePath(pts,w1,w2,w3,a1,a2,a3,b1,b2,b3){
+    if(a1<=0.004&&a2<=0.004&&a3<=0.004)return;
     smoothPath(pts);ctx.lineCap='round';ctx.lineJoin='round';
     ctx.shadowBlur=b1;ctx.shadowColor='#7c3aed';ctx.strokeStyle='rgba(120,60,220,'+a1+')';ctx.lineWidth=w1;ctx.stroke();
     ctx.shadowBlur=b2;ctx.shadowColor='#a855f7';ctx.strokeStyle='rgba(168,85,247,'+a2+')';ctx.lineWidth=w2;ctx.stroke();
     ctx.shadowBlur=b3;ctx.shadowColor='#e9d5ff';ctx.strokeStyle='rgba(233,213,255,'+a3+')';ctx.lineWidth=w3;ctx.stroke();
   }
-  function draw(ts){var w=canvas.width-PAD*2,h=canvas.height-PAD*2;ctx.clearRect(0,0,canvas.width,canvas.height);var thick=hovered?1.3:0.8,t=ts/1000,fl=0.84+Math.sin(t*3.2)*0.09+Math.sin(t*7.4)*0.05;
-  ctx.save();ctx.translate(PAD,PAD);
-  layers.forEach(function(layer,li){if(ts-layer.lastRegen>110+li*50+Math.random()*80){layer.data=buildBorder(w,h,7+li*1.5,6);layer.lastRegen=ts;}
-  var la=[1,0.6,0.35][li];
-  layer.data.mains.forEach(function(pts){strokePath(pts,
-    (hovered?5:3.6)*thick*(li===0?1:0.6),(hovered?2.6:1.9)*thick*(li===0?1:0.55),(hovered?1.3:0.9)*thick*(li===0?1:0.5),
-    0.14*fl*la,0.32*fl*la,0.42*fl*la,
-    hovered?30:24,hovered?12:9,5);});
-  layer.data.branches.forEach(function(pts){strokePath(pts,
-    (hovered?2.4:1.7)*thick*(li===0?1:0.6),(hovered?1.3:0.9)*thick*(li===0?1:0.55),(hovered?0.7:0.5)*thick*(li===0?1:0.5),
-    0.08*fl*la,0.2*fl*la,0.26*fl*la,
-    hovered?18:14,hovered?8:6,3);});
-  });
-  ctx.restore();requestAnimationFrame(draw);}
+
+  // flash-then-decay: strikes pop in fast, hold briefly, fade out, then a new one lands elsewhere
+  var strikes=[],lastSpawn=0;
+  function draw(ts){
+    var w=canvas.width-PAD*2,h=canvas.height-PAD*2;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.save();ctx.translate(PAD,PAD);
+    var thick=hovered?1.35:0.85,maxActive=hovered?4:2,spawnGap=hovered?90:170;
+    strikes=strikes.filter(function(s){return ts-s.born<s.life;});
+    if(strikes.length<maxActive&&ts-lastSpawn>spawnGap){strikes.push(newStrike(w,h,ts));lastSpawn=ts;}
+    strikes.forEach(function(s){
+      var age=(ts-s.born)/s.life;
+      var env=age<0.12?age/0.12:Math.pow(Math.max(0,1-(age-0.12)/0.88),1.4);
+      strokePath(s.main,
+        (hovered?4.4:3.2)*thick,(hovered?2.3:1.7)*thick,(hovered?1.2:0.85)*thick,
+        0.15*env,0.34*env,0.46*env,
+        hovered?28:22,hovered?12:9,5);
+      s.branches.forEach(function(bp){strokePath(bp,
+        (hovered?2.1:1.5)*thick,(hovered?1.1:0.8)*thick,(hovered?0.6:0.42)*thick,
+        0.09*env,0.2*env,0.28*env,
+        hovered?16:12,hovered?7:5,3);});
+    });
+    ctx.restore();requestAnimationFrame(draw);
+  }
   requestAnimationFrame(draw);
+}
+
+function initStoreCardFX(){
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if(window.matchMedia && !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  document.querySelectorAll('#store .product').forEach(function(card){
+    card.addEventListener('mousemove',function(e){
+      var r=card.getBoundingClientRect();
+      var px=(e.clientX-r.left)/r.width, py=(e.clientY-r.top)/r.height;
+      var rx=(0.5-py)*12, ry=(px-0.5)*12;
+      card.style.transform='perspective(700px) rotateX('+rx.toFixed(2)+'deg) rotateY('+ry.toFixed(2)+'deg) scale(1.045) translateY(-4px)';
+      card.style.setProperty('--mx',(px*100)+'%');
+      card.style.setProperty('--my',(py*100)+'%');
+    });
+    card.addEventListener('mouseleave',function(){card.style.transform='';});
+  });
+  document.querySelectorAll('#store .qs-btn, #store .qs-add-btn').forEach(function(btn){
+    btn.addEventListener('mousemove',function(e){
+      var r=btn.getBoundingClientRect();
+      var mx=e.clientX-r.left-r.width/2, my=e.clientY-r.top-r.height/2;
+      var tx=Math.max(-6,Math.min(6,mx*0.25)), ty=Math.max(-5,Math.min(5,my*0.3));
+      btn.style.transform='translate('+tx.toFixed(1)+'px,'+ty.toFixed(1)+'px)';
+    });
+    btn.addEventListener('mouseleave',function(){btn.style.transform='';});
+  });
 }
 
 // ── ADMIN ──
@@ -1645,6 +1698,7 @@ document.addEventListener('DOMContentLoaded',function(){
   requestAnimationFrame(function(){requestAnimationFrame(function(){document.body.classList.add('introgo');});});
   setTimeout(initLightning,100);
   setTimeout(initHomeParticles,100);
+  setTimeout(initStoreCardFX,100);
   applySoldOut();
   var bl=document.getElementById('nav-basket-li');if(bl)bl.style.display='none';
   var nl=document.getElementById('nav-links');if(nl)nl.style.display='none';
