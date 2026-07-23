@@ -120,12 +120,14 @@ body.introgo .cv-sparkle{animation:cvSparklePop 0.6s cubic-bezier(0.2,0.8,0.3,1)
 .product-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0.9rem;background:transparent;width:100%;max-width:1000px;}
 .store-set-label{grid-column:1/-1;font-family:'Bebas Neue',sans-serif;font-size:2.1rem;letter-spacing:0.26em;color:#fff;padding:2.5rem 0 0.8rem;border-top:1px solid rgba(110,40,180,0.2);margin-top:1.5rem;text-align:center;scroll-margin-top:6.5rem;}
 .store-set-label:first-child{border-top:none;margin-top:0;}
-.product{background:#0a0710;border:1px solid rgba(180,79,232,0.16);border-radius:14px;padding:1.3rem 1.3rem 1.6rem;cursor:pointer;transition:background 0.3s,box-shadow 0.4s cubic-bezier(0.2,0.6,0.3,1),border-color 0.3s,transform 0.12s ease-out;position:relative;z-index:1;overflow:hidden;transform-style:preserve-3d;}
+.product{background:#0a0710;border:1px solid rgba(180,79,232,0.16);border-radius:14px;padding:1.3rem 1.3rem 1.6rem;cursor:pointer;position:relative;z-index:1;overflow:hidden;transform-style:preserve-3d;}
+/* .product also carries .reveal, which sets its own `transition` shorthand for opacity/transform - since only
+   one `transition` declaration can win per element, this combined selector re-states every property this card
+   needs (at the right speed each) so hover response doesn't inherit .reveal's slower, reveal-only timing */
+.product.reveal{transition:opacity 0.7s cubic-bezier(0.2,0.6,0.3,1),background 0.3s,box-shadow 0.4s cubic-bezier(0.2,0.6,0.3,1),border-color 0.3s,transform 0.12s ease-out;}
 .product::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(180,79,232,0.45),transparent 62%);opacity:0;transition:opacity 0.35s;pointer-events:none;z-index:0;}
 .product:hover::before{opacity:1;}
 .product:hover{background:#0a0a0a;z-index:10;box-shadow:0 26px 60px rgba(110,40,180,0.35),0 10px 34px rgba(0,0,0,0.55);}
-.product-grid .product:nth-child(3n+2){transition-delay:0.06s;}
-.product-grid .product:nth-child(3n){transition-delay:0.12s;}
 .product-name,.product-price,.quick-sizes,.qs-add-btn{position:relative;z-index:1;}
 .product-img{width:100%;aspect-ratio:1;background:#0d0d0d;border:1px solid rgba(110,40,180,0.2);border-radius:9px;display:flex;align-items:center;justify-content:center;margin-bottom:1rem;font-size:3rem;overflow:hidden;position:relative;z-index:1;transition:border-color 0.3s;}
 .product-img img{transition:transform 0.5s cubic-bezier(0.2,0.6,0.3,1);}
