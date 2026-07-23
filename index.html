@@ -353,9 +353,11 @@ textarea.cfa-input{resize:vertical;}
   .nav-profile-dropdown{right:-0.5rem;}
   .boxes{flex-direction:column;max-width:340px;}
   .tiers{flex-direction:column;}
+  .tier{overflow:hidden;}
   .product-grid{grid-template-columns:repeat(2,1fr);}
   .store-layout{flex-direction:column;align-items:stretch;padding-left:0;}
-  .store-sidebar{position:sticky;left:auto;top:4.2rem;width:auto;flex-direction:row;overflow-x:auto;z-index:20;padding:0.6rem 2rem 0.9rem;margin:0 -2rem;background:rgba(5,3,8,0.97);}
+  .store-sidebar{position:sticky;left:auto;top:4.2rem;width:auto;flex-direction:row;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;z-index:20;padding:0.6rem 2rem 0.9rem;margin:0 -2rem;background:none;}
+  .store-sidebar::-webkit-scrollbar{display:none;}
   .store-sidebar-link{flex:0 0 140px;padding:1.1rem 1rem;font-size:1rem;text-align:center;}
   .product-page-wrap{grid-template-columns:1fr;gap:2.5rem;}
   .suggestions-grid{grid-template-columns:repeat(2,1fr);}
@@ -363,6 +365,8 @@ textarea.cfa-input{resize:vertical;}
   .footer-grid{grid-template-columns:1fr 1fr;}
   .footer-bottom{flex-direction:column;gap:1rem;text-align:center;}
   .checkout-wrap{grid-template-columns:1fr;}
+  .profile-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .profile-tab{padding:0.8rem 1rem;white-space:nowrap;flex:0 0 auto;}
 }
 @media(max-width:400px){
   nav{padding:0.55rem 0.6rem;}
