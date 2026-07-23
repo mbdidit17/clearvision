@@ -89,7 +89,7 @@ body.introgo .cv-sparkle{animation:cvSparklePop 0.6s cubic-bezier(0.2,0.8,0.3,1)
 .tier:hover{border-color:rgba(180,79,232,0.4);transform:translateY(-4px);box-shadow:0 24px 60px rgba(122,40,180,0.28);}
 .tier.featured{border-color:rgba(180,79,232,0.5);box-shadow:0 0 90px rgba(122,40,180,0.3),0 0 200px rgba(122,40,180,0.14);}
 .tier.featured::before{content:'';position:absolute;top:-45%;right:-25%;width:440px;height:440px;background:radial-gradient(circle,rgba(140,60,235,0.38),transparent 66%);pointer-events:none;z-index:0;}
-.tier.featured>.lightning-canvas{position:absolute;top:-18px;left:-18px;width:calc(100% + 36px)!important;height:calc(100% + 36px)!important;pointer-events:none;z-index:0;overflow:visible;}
+.tier.featured>.lightning-canvas{position:absolute;top:0;left:0;width:100%!important;height:100%!important;border-radius:22px;pointer-events:none;z-index:0;}
 .tier>*:not(.lightning-canvas){position:relative;z-index:1;}
 .tier-tag{font-size:0.66rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--purple-bright);margin-bottom:0.7rem;}
 .tier-name{font-family:'Bebas Neue',sans-serif;font-size:2.7rem;letter-spacing:0.05em;margin-bottom:0.2rem;line-height:1;}
@@ -109,17 +109,17 @@ body.introgo .cv-sparkle{animation:cvSparklePop 0.6s cubic-bezier(0.2,0.8,0.3,1)
 .btn-purple.filled:hover{background:linear-gradient(180deg,#a95cf0,#7c2eb8);box-shadow:0 14px 44px rgba(140,60,235,0.7);}
 #store{flex-direction:column;align-items:center;padding:8rem 2rem 5rem;}
 .store-header{text-align:center;margin-bottom:3.5rem;}
-.store-layout{display:flex;width:100%;padding-left:270px;}
-.store-sidebar{position:fixed;top:7rem;left:2rem;width:220px;display:flex;flex-direction:column;gap:1rem;background:none;-webkit-backdrop-filter:none;backdrop-filter:none;border-bottom:none;padding:0;z-index:5;}
+.store-layout{display:flex;width:100%;padding-left:254px;}
+.store-sidebar{position:fixed;top:7rem;left:1rem;right:auto;width:220px;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:1rem;background:none;-webkit-backdrop-filter:none;backdrop-filter:none;border-bottom:none;padding:0;z-index:5;}
 .product-grid{margin:0 auto;}
-.store-sidebar-link{background:none;border:1px solid rgba(180,79,232,0.3);border-radius:12px;padding:1.4rem 1.6rem;color:rgba(255,255,255,0.5);font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:0.12em;text-align:left;cursor:pointer;box-shadow:0 0 18px rgba(122,40,180,0.1);transition:border-color 0.3s,color 0.3s,transform 0.3s,box-shadow 0.3s;}
+.store-sidebar-link{background:none;border:1px solid rgba(180,79,232,0.3);border-radius:12px;padding:1.9rem 1.5rem;color:rgba(255,255,255,0.5);font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:0.12em;text-align:left;cursor:pointer;box-shadow:0 0 18px rgba(122,40,180,0.1);transition:border-color 0.3s,color 0.3s,transform 0.3s,box-shadow 0.3s;}
 .store-sidebar-link:hover{border-color:var(--purple-bright);color:#fff;transform:translateY(-4px);box-shadow:0 14px 34px rgba(122,40,180,0.32);}
 .store-sidebar-link.active{border-color:var(--purple-bright);color:#fff;transform:translateY(-4px);box-shadow:0 14px 38px rgba(122,40,180,0.4);}
 .product-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0.9rem;background:transparent;width:100%;max-width:1000px;}
 .store-set-label{grid-column:1/-1;font-family:'Bebas Neue',sans-serif;font-size:2.1rem;letter-spacing:0.26em;color:#fff;padding:2.5rem 0 0.8rem;border-top:1px solid rgba(110,40,180,0.2);margin-top:1.5rem;text-align:center;scroll-margin-top:6.5rem;}
 .store-set-label:first-child{border-top:none;margin-top:0;}
 .product{background:#0a0710;border:1px solid rgba(180,79,232,0.16);border-radius:14px;padding:1.3rem 1.3rem 1.6rem;cursor:pointer;transition:background 0.3s,box-shadow 0.4s cubic-bezier(0.2,0.6,0.3,1),border-color 0.3s,transform 0.4s cubic-bezier(0.2,0.6,0.3,1);position:relative;z-index:1;overflow:hidden;transform-style:preserve-3d;}
-.product::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(180,79,232,0.3),transparent 55%);opacity:0;transition:opacity 0.35s;pointer-events:none;z-index:0;}
+.product::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(180,79,232,0.45),transparent 62%);opacity:0;transition:opacity 0.35s;pointer-events:none;z-index:0;}
 .product:hover::before{opacity:1;}
 .product:hover{background:#0a0a0a;z-index:10;box-shadow:0 26px 60px rgba(110,40,180,0.35),0 10px 34px rgba(0,0,0,0.55);}
 .product-grid .product:nth-child(3n+2){transition-delay:0.06s;}
@@ -213,6 +213,10 @@ body.introgo .cv-sparkle{animation:cvSparklePop 0.6s cubic-bezier(0.2,0.8,0.3,1)
 .form-group input{background:#0a0a0a;border:1px solid rgba(110,40,180,0.3);color:#fff;padding:0.9rem 1rem;font-family:'DM Sans',sans-serif;font-size:0.9rem;outline:none;transition:border-color 0.2s;width:100%;}
 .form-group input:focus{border-color:var(--purple-bright);}
 .form-group input::placeholder{color:rgba(255,255,255,0.15);}
+.cfa-input{width:100%;background:#111;border:1px solid rgba(255,255,255,0.12);color:#fff;padding:0.75rem 1rem;font-size:0.85rem;font-family:'DM Sans',sans-serif;border-radius:10px;outline:none;transition:border-color 0.2s;box-sizing:border-box;}
+.cfa-input:hover,.cfa-input:focus{border-color:var(--purple-bright);}
+select.cfa-input{-webkit-appearance:none;appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23ffffff' stroke-opacity='0.55' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 8l4 4 4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 1rem center;background-size:16px;padding-right:2.6rem;}
+textarea.cfa-input{resize:vertical;}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
 .order-summary{background:#0a0a0a;border:1px solid rgba(110,40,180,0.25);padding:2rem;position:sticky;top:6rem;}
 .order-items{display:flex;flex-direction:column;gap:1rem;margin-bottom:1.5rem;}
@@ -326,7 +330,7 @@ body.introgo .cv-sparkle{animation:cvSparklePop 0.6s cubic-bezier(0.2,0.8,0.3,1)
 .footer-links a:hover{color:rgba(255,255,255,0.8);}
 .footer-bottom{max-width:1000px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.04);}
 .footer-bottom p{font-size:0.7rem;color:rgba(255,255,255,0.35);letter-spacing:0.06em;}
-.lightning-canvas{position:absolute;top:-18px;left:-18px;pointer-events:none;z-index:0;}
+.lightning-canvas{position:absolute;top:0;left:0;width:100%;height:100%;border-radius:22px;pointer-events:none;z-index:0;}
 @keyframes dropIn{to{opacity:1;transform:translateY(0);}}
 @keyframes fadeUp{to{opacity:1;transform:translateY(0);}}
 @media(max-width:768px){
@@ -413,7 +417,7 @@ body.introgo .cv-sparkle{animation:cvSparklePop 0.6s cubic-bezier(0.2,0.8,0.3,1)
 .sub-status.cancelled{background:rgba(200,60,60,0.12);color:#f87171;border:1px solid rgba(200,60,60,0.25);}
 .sub-cancel-btn{background:none;border:1px solid rgba(200,60,60,0.4);color:rgba(248,113,113,0.7);font-family:'DM Sans',sans-serif;font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;padding:0.45rem 0.9rem;cursor:pointer;transition:all 0.2s;}
 .sub-cancel-btn:hover{border-color:#f87171;color:#f87171;}
-.profile-empty{text-align:center;padding:3rem 0;color:rgba(255,255,255,0.2);font-size:0.8rem;letter-spacing:0.1em;text-transform:uppercase;}
+.profile-empty{text-align:center;padding:3rem 0;color:rgba(255,255,255,0.5);font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;}
 /* ── CANCEL MODAL ── */
 .cancel-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);z-index:500;align-items:center;justify-content:center;}
 .cancel-overlay.open{display:flex;}
@@ -941,7 +945,7 @@ body.introgo .cv-sparkle{animation:cvSparklePop 0.6s cubic-bezier(0.2,0.8,0.3,1)
     <div style="display:flex;flex-direction:column;gap:1rem;">
       <div>
         <label style="font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.4);display:block;margin-bottom:0.4rem;">Your main goal</label>
-        <select id="cfa-goal" style="width:100%;background:#111;border:1px solid rgba(255,255,255,0.12);color:#fff;padding:0.75rem 1rem;font-size:0.85rem;border-radius:2px;outline:none;">
+        <select id="cfa-goal" class="cfa-input">
           <option value="">Select...</option>
           <option>Lose fat</option>
           <option>Build muscle</option>
@@ -952,7 +956,7 @@ body.introgo .cv-sparkle{animation:cvSparklePop 0.6s cubic-bezier(0.2,0.8,0.3,1)
       </div>
       <div>
         <label style="font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.4);display:block;margin-bottom:0.4rem;">Training experience</label>
-        <select id="cfa-exp" style="width:100%;background:#111;border:1px solid rgba(255,255,255,0.12);color:#fff;padding:0.75rem 1rem;font-size:0.85rem;border-radius:2px;outline:none;">
+        <select id="cfa-exp" class="cfa-input">
           <option value="">Select...</option>
           <option>Complete beginner</option>
           <option>Less than 1 year</option>
@@ -962,7 +966,7 @@ body.introgo .cv-sparkle{animation:cvSparklePop 0.6s cubic-bezier(0.2,0.8,0.3,1)
       </div>
       <div>
         <label style="font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.4);display:block;margin-bottom:0.4rem;">Days available per week</label>
-        <select id="cfa-days" style="width:100%;background:#111;border:1px solid rgba(255,255,255,0.12);color:#fff;padding:0.75rem 1rem;font-size:0.85rem;border-radius:2px;outline:none;">
+        <select id="cfa-days" class="cfa-input">
           <option value="">Select...</option>
           <option>2–3 days</option>
           <option>4–5 days</option>
@@ -971,7 +975,7 @@ body.introgo .cv-sparkle{animation:cvSparklePop 0.6s cubic-bezier(0.2,0.8,0.3,1)
       </div>
       <div>
         <label style="font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.4);display:block;margin-bottom:0.4rem;">Anything else we should know? <span style="opacity:0.4">(optional)</span></label>
-        <textarea id="cfa-notes" rows="3" placeholder="Injuries, schedule constraints, specific goals..." style="width:100%;background:#111;border:1px solid rgba(255,255,255,0.12);color:#fff;padding:0.75rem 1rem;font-size:0.85rem;border-radius:2px;outline:none;resize:vertical;box-sizing:border-box;"></textarea>
+        <textarea id="cfa-notes" rows="3" placeholder="Injuries, schedule constraints, specific goals..." class="cfa-input"></textarea>
       </div>
       <p id="cfa-error" style="color:#e74c3c;font-size:0.8rem;min-height:1rem;"></p>
       <button class="btn-purple filled" style="width:100%;padding:1.1rem;font-size:0.9rem;" onclick="submitCoachingApplication()">Add to Basket</button>
@@ -1513,13 +1517,9 @@ function initHomeParticles(){
 }
 function initLightning(){
   var canvas=document.getElementById('lightningCanvas');if(!canvas)return;
-  if(canvas.dataset.lightningInit)return;
-  canvas.dataset.lightningInit='1';
-  var parent=canvas.parentElement;
-  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  if(canvas._lightningRender){canvas._lightningRender();return;}
   var gl=canvas.getContext('webgl')||canvas.getContext('experimental-webgl');
   if(!gl)return;
-  var hovered=false;parent.addEventListener('mouseenter',function(){hovered=true;});parent.addEventListener('mouseleave',function(){hovered=false;});
 
   var vsSrc='attribute vec2 aPos;varying vec2 vUv;void main(){vUv=aPos*0.5+0.5;gl_Position=vec4(aPos,0.0,1.0);}';
   var fsSrc=[
@@ -1560,8 +1560,10 @@ function initLightning(){
     // large-scale drifting activity field: only part of the card is "live" at any moment, not the whole surface at once
     '  float act=fbm(p*0.45+vec2(t*0.3,t*0.2));',
     '  float activity=smoothstep(-0.15,0.55,act);',
-    '  float flicker=0.88+0.12*sin(uTime*0.8);',
-    '  float intensity=veins*mix(0.25,1.0,activity)*(0.5+0.4*uHover)*flicker;',
+    '  float intensity=veins*mix(0.25,1.0,activity)*(0.42+0.35*uHover);',
+    // keep the top of the card (where the title/price text sits) noticeably darker so copy stays legible
+    '  float textGuard=mix(1.0,0.28,smoothstep(0.4,1.0,uv.y));',
+    '  intensity*=textGuard;',
     '  vec2 edge=min(uv,1.0-uv)*uRes;',
     '  float vig=smoothstep(0.0,20.0,min(edge.x,edge.y));',
     '  intensity*=vig;',
@@ -1594,28 +1596,22 @@ function initLightning(){
   var uRes=gl.getUniformLocation(prog,'uRes'),uTime=gl.getUniformLocation(prog,'uTime'),uHover=gl.getUniformLocation(prog,'uHover');
   gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
 
-  // canvas position/size is driven by CSS (.lightning-canvas); read the rendered box back for the drawing buffer.
-  // checked every frame (cheap) since the coaching page starts display:none, so no size is available until it's shown
+  // still image now (was a live loop) - one frame, frozen at a picked time value, redrawn only on resize
   var dpr=Math.min(window.devicePixelRatio||1,2);
-  function syncSize(){
+  function render(){
     var r=canvas.getBoundingClientRect();
     var w=Math.max(1,Math.round(r.width*dpr)),h=Math.max(1,Math.round(r.height*dpr));
-    if(w!==canvas.width||h!==canvas.height){canvas.width=w;canvas.height=h;}
-  }
-
-  var hoverAmt=0;
-  function draw(ts){
-    syncSize();
-    hoverAmt+=((hovered?1:0)-hoverAmt)*0.08;
-    gl.viewport(0,0,canvas.width,canvas.height);
+    canvas.width=w;canvas.height=h;
+    gl.viewport(0,0,w,h);
     gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.uniform2f(uRes,canvas.width,canvas.height);
-    gl.uniform1f(uTime,ts/1000);
-    gl.uniform1f(uHover,hoverAmt);
+    gl.uniform2f(uRes,w,h);
+    gl.uniform1f(uTime,5.0);
+    gl.uniform1f(uHover,0);
     gl.drawArrays(gl.TRIANGLES,0,3);
-    requestAnimationFrame(draw);
   }
-  requestAnimationFrame(draw);
+  canvas._lightningRender=render;
+  render();
+  window.addEventListener('resize',render);
 }
 
 function initStoreCardFX(){
@@ -1625,8 +1621,8 @@ function initStoreCardFX(){
     card.addEventListener('mousemove',function(e){
       var r=card.getBoundingClientRect();
       var px=(e.clientX-r.left)/r.width, py=(e.clientY-r.top)/r.height;
-      var rx=(0.5-py)*12, ry=(px-0.5)*12;
-      card.style.transform='perspective(700px) rotateX('+rx.toFixed(2)+'deg) rotateY('+ry.toFixed(2)+'deg) scale(1.045) translateY(-4px)';
+      var rx=(0.5-py)*18, ry=(px-0.5)*18;
+      card.style.transform='perspective(700px) rotateX('+rx.toFixed(2)+'deg) rotateY('+ry.toFixed(2)+'deg) scale(1.07) translateY(-8px)';
       card.style.setProperty('--mx',(px*100)+'%');
       card.style.setProperty('--my',(py*100)+'%');
     });
@@ -1718,7 +1714,7 @@ async function renderAdminContent(){
       });
     });
     rows.sort(function(a,b){return b.id>a.id?1:-1;});
-    if(!rows.length){el.innerHTML='<p style="color:rgba(255,255,255,0.3);font-size:0.85rem;">No orders yet.</p>';return;}
+    if(!rows.length){el.innerHTML='<p style="color:rgba(255,255,255,0.5);font-size:0.85rem;">No orders yet.</p>';return;}
     el.innerHTML='<table class="admin-table"><thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Items</th><th>Total</th></tr></thead><tbody>'+
       rows.map(function(r){return'<tr><td style="color:#fff;font-weight:600;">#'+escHtml(r.id)+'</td><td>'+escHtml(r.date)+'</td><td><div>'+escHtml(r.name)+'</div><div style="color:rgba(255,255,255,0.35);font-size:0.75rem;">'+escHtml(r.email)+'</div></td><td>'+r.items.map(function(i){return escHtml(i.name);}).join('<br/>')+'</td><td style="color:var(--purple-bright);font-weight:600;">'+escHtml(r.total)+'</td></tr>';}).join('')+
     '</tbody></table>';

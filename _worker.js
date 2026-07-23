@@ -366,6 +366,12 @@ export default {
       if (path === '/functions/stripe-webhook') return handleWebhook(request, env);
     }
 
-    return env.ASSETS.fetch(request);
+    const assetResponse = await env.ASSETS.fetch(request);
+    if (request.method === 'GET' && (path === '/' || path === '' || path.endsWith('.html'))) {
+      const res = new Response(assetResponse.body, assetResponse);
+      res.headers.set('Cache-Control', 'no-cache, must-revalidate');
+      return res;
+    }
+    return assetResponse;
   }
 };
