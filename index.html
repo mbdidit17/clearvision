@@ -1286,6 +1286,7 @@ function showPage(n){
   var pg=document.getElementById(n);if(pg)pg.classList.add('active');
   var nv=document.getElementById('nav-'+n);if(nv)nv.classList.add('active');
   window.scrollTo(0,0);
+  if(n==='store'){var sb=document.querySelector('.store-sidebar');if(sb)sb.classList.remove('solid');}
   setTimeout(cvRevealScan,30);
   if(n==='coaching')setTimeout(initLightning,50);
   if(n==='basket')setTimeout(renderBasket,50);
@@ -1682,6 +1683,7 @@ function initStoreSidebar(){
   var sidebar=document.querySelector('.store-sidebar');
   if(sidebar){
     var onScroll=function(){
+      if(sidebar.offsetParent===null)return;
       var stuckOffset=parseFloat(getComputedStyle(sidebar).top)||0;
       var stuck=sidebar.getBoundingClientRect().top<=stuckOffset+1;
       sidebar.classList.toggle('solid',stuck);
