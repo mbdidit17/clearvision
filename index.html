@@ -366,8 +366,12 @@ textarea.cfa-input{resize:vertical;}
   .footer-grid{grid-template-columns:1fr 1fr;}
   .footer-bottom{flex-direction:column;gap:1rem;text-align:center;}
   .checkout-wrap{grid-template-columns:1fr;}
-  .profile-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .profile-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;}
+  .profile-tabs::-webkit-scrollbar{display:none;}
   .profile-tab{padding:0.8rem 1rem;white-space:nowrap;flex:0 0 auto;}
+  .admin-tabs-row{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;}
+  .admin-tabs-row::-webkit-scrollbar{display:none;}
+  .admin-tab{padding:0.75rem 0.9rem;white-space:nowrap;flex:0 0 auto;}
 }
 @media(max-width:400px){
   nav{padding:0.55rem 0.6rem;}
@@ -803,7 +807,7 @@ textarea.cfa-input{resize:vertical;}
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:2.5rem;" id="admin-stats"></div>
 
     <!-- Tabs -->
-    <div style="display:flex;gap:0;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:2rem;">
+    <div class="admin-tabs-row" style="display:flex;gap:0;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:2rem;">
       <button class="admin-tab active" onclick="switchAdminTab('orders')" id="atab-orders">Orders</button>
       <button class="admin-tab" onclick="switchAdminTab('customers')" id="atab-customers">Customers</button>
       <button class="admin-tab" onclick="switchAdminTab('applications')" id="atab-applications">Applications</button>
