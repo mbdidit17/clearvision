@@ -114,9 +114,9 @@ body.introgo .cv-sparkle{animation:cvSparklePop 0.6s cubic-bezier(0.2,0.8,0.3,1)
 .store-layout{display:flex;width:100%;padding-left:254px;}
 .store-sidebar{position:fixed;top:7rem;left:1rem;right:auto;width:220px;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:1rem;background:none;-webkit-backdrop-filter:none;backdrop-filter:none;border-bottom:none;padding:0;z-index:5;}
 .product-grid{margin:0 auto;}
-.store-sidebar-link{background:none;border:1px solid rgba(180,79,232,0.3);border-radius:12px;padding:1.9rem 1.5rem;color:rgba(255,255,255,0.5);font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:0.12em;text-align:left;cursor:pointer;box-shadow:0 0 18px rgba(122,40,180,0.1);transition:border-color 0.3s,color 0.3s,transform 0.3s,box-shadow 0.3s;}
-.store-sidebar-link:hover{border-color:var(--purple-bright);color:#fff;transform:translateY(-4px);box-shadow:0 14px 34px rgba(122,40,180,0.32);}
-.store-sidebar-link.active{border-color:var(--purple-bright);color:#fff;transform:translateY(-4px);box-shadow:0 14px 38px rgba(122,40,180,0.4);}
+.store-sidebar-link{background:transparent;border:1px solid rgba(180,79,232,0.3);border-radius:12px;padding:1.9rem 1.5rem;color:rgba(255,255,255,0.5);font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:0.12em;text-align:left;cursor:pointer;transition:background 0.25s,border-color 0.25s,color 0.25s,transform 0.3s;}
+.store-sidebar-link:hover{border-color:var(--purple-bright);color:#fff;transform:translateY(-4px);}
+.store-sidebar-link.active{background:linear-gradient(180deg,#9a45e0,#6e22a8);border-color:transparent;color:#fff;transform:translateY(-4px);}
 .product-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0.9rem;background:transparent;width:100%;max-width:1000px;}
 .store-set-label{grid-column:1/-1;font-family:'Bebas Neue',sans-serif;font-size:2.1rem;letter-spacing:0.26em;color:#fff;padding:2.5rem 0 0.8rem;border-top:1px solid rgba(110,40,180,0.2);margin-top:1.5rem;text-align:center;scroll-margin-top:6.5rem;}
 .store-set-label:first-child{border-top:none;margin-top:0;}
