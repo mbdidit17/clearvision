@@ -1752,7 +1752,7 @@ async function renderAdminContent(){
   }
 
   if(adminTab==='customers'){
-    if(!users.length){el.innerHTML='<p style="color:rgba(255,255,255,0.3);font-size:0.85rem;">No customers yet.</p>';return;}
+    if(!users.length){el.innerHTML='<p style="color:rgba(255,255,255,0.5);font-size:0.85rem;">No customers yet.</p>';return;}
     el.innerHTML='<table class="admin-table"><thead><tr><th>Name</th><th>Email</th><th>Orders</th><th>Subscriptions</th><th>Joined</th></tr></thead><tbody>'+
       users.map(function(u){
         var subs=(u.subscriptions||[]).filter(function(s){return s.status==='active';});
@@ -1768,7 +1768,7 @@ async function renderAdminContent(){
         apps.push({email:u.email,name:u.name||'—',app:a});
       });
     });
-    if(!apps.length){el.innerHTML='<p style="color:rgba(255,255,255,0.3);font-size:0.85rem;">No applications yet.</p>';return;}
+    if(!apps.length){el.innerHTML='<p style="color:rgba(255,255,255,0.5);font-size:0.85rem;">No applications yet.</p>';return;}
     el.innerHTML='<table class="admin-table"><thead><tr><th>Date</th><th>Customer</th><th>Package</th><th>Goal</th><th>Experience</th><th>Days</th><th>Notes</th></tr></thead><tbody>'+
       apps.map(function(r){return'<tr><td>'+escHtml(r.app.date)+'</td><td><div>'+escHtml(r.name)+'</div><div style="color:rgba(255,255,255,0.35);font-size:0.75rem;">'+escHtml(r.email)+'</div></td><td style="color:var(--purple-bright);">'+escHtml(r.app.package)+'</td><td>'+escHtml(r.app.goal)+'</td><td>'+escHtml(r.app.experience)+'</td><td>'+escHtml(r.app.days)+'</td><td style="color:rgba(255,255,255,0.4);">'+escHtml(r.app.notes||'—')+'</td></tr>';}).join('')+
     '</tbody></table>';
