@@ -56,7 +56,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:cen
 body.introgo .logo-aura{animation:auraBloom 2.4s ease both 0.1s;}
 .home-particles{position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
 .logo-box{position:relative;display:flex;flex-direction:column;align-items:center;}
-.cv-eye-video{width:680px;max-width:90vw;height:auto;display:block;position:relative;z-index:1;pointer-events:none;mix-blend-mode:screen;}
+.cv-eye-video{width:680px;max-width:90vw;height:auto;display:block;position:relative;z-index:1;pointer-events:none;}
 body.introgo .cv-eyefloat{animation:eyeFloat 4.6s ease-in-out infinite 2.3s;transform-origin:center;}
 @keyframes eyeFloat{0%,100%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(-18px) rotate(-1.2deg);}}
 .logo-box::after{content:'';position:absolute;top:0;bottom:0;left:30%;width:40%;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,0.28) 50%,transparent 70%);mix-blend-mode:screen;transform:translateX(200%) rotate(6deg);opacity:0;z-index:3;pointer-events:none;}
@@ -1649,14 +1649,46 @@ function initCoachingCardFX(){
 function initEyeVideo(){
   var v=document.getElementById('cvEyeVideoSrc'),c=document.getElementById('cvEyeVideoCanvas');
   if(!v||!c)return;
-  var ctx=c.getContext('2d');
-  function draw(){
-    if(v.videoWidth&&(c.width!==v.videoWidth||c.height!==v.videoHeight)){c.width=v.videoWidth;c.height=v.videoHeight;}
-    if(v.videoWidth)ctx.drawImage(v,0,0,c.width,c.height);
-    if(!v.ended)requestAnimationFrame(draw);
+  var ctx=c.getContext('2d',{willReadFrequently:true});
+  var sized=false,started=false,resetting=false;
+  function paintFrame(){
+    if(v.videoWidth&&!sized){
+      var dpr=Math.min(window.devicePixelRatio||1,2);
+      var w=Math.round(760*dpr);
+      c.width=w;
+      c.height=Math.round(w*(v.videoHeight/v.videoWidth));
+      sized=true;
+    }
+    if(!sized)return;
+    ctx.drawImage(v,0,0,c.width,c.height);
+    var frame=ctx.getImageData(0,0,c.width,c.height);
+    var d=frame.data;
+    for(var i=0;i<d.length;i+=4){
+      d[i+3]=Math.max(d[i],d[i+1],d[i+2]);
+    }
+    ctx.putImageData(frame,0,0);
   }
-  v.addEventListener('loadeddata',function(){requestAnimationFrame(draw);});
-  if(v.readyState>=2)requestAnimationFrame(draw);
+  function loop(){
+    paintFrame();
+    if(!v.ended)requestAnimationFrame(loop);
+  }
+  function start(){
+    if(started)return;
+    started=true;
+    requestAnimationFrame(loop);
+  }
+  v.addEventListener('loadeddata',function(){
+    if(resetting){resetting=false;paintFrame();return;}
+    start();
+  });
+  v.addEventListener('ended',function(){
+    started=false;
+    resetting=true;
+    v.pause();
+    v.removeAttribute('autoplay');
+    v.load();
+  });
+  if(v.readyState>=2)start();
 }
 
 function scrollToStoreSet(id){
