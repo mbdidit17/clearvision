@@ -1659,7 +1659,7 @@ function initEyeVideo(){
   if(!v||!c||!rc)return;
   var ctx=c.getContext('2d',{willReadFrequently:true});
   var rctx=rc.getContext('2d',{willReadFrequently:true});
-  var sized=false,started=false;
+  var sized=false,started=false,firstFrame=null;
   function keyAlpha(context,w,h){
     var frame=context.getImageData(0,0,w,h);
     var d=frame.data;
@@ -1667,6 +1667,7 @@ function initEyeVideo(){
       d[i+3]=Math.max(d[i],d[i+1],d[i+2]);
     }
     context.putImageData(frame,0,0);
+    return frame;
   }
   function sizeCanvases(){
     if(sized||!v.videoWidth)return;
@@ -1690,28 +1691,43 @@ function initEyeVideo(){
   }
   function onEnded(){
     v.pause();
-    v.removeAttribute('autoplay');
-    v.addEventListener('loadeddata',function onReady(){
-      v.removeEventListener('loadeddata',onReady);
-      rctx.drawImage(v,0,0,rc.width,rc.height);
-      keyAlpha(rctx,rc.width,rc.height);
-      requestAnimationFrame(function(){
-        requestAnimationFrame(function(){rc.classList.add('show');});
-      });
+    if(firstFrame)rctx.putImageData(firstFrame,0,0);
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){rc.classList.add('show');});
     });
-    v.load();
   }
-  function start(){
+  function beginPlayback(){
     if(started)return;
     started=true;
     requestAnimationFrame(loop);
+    v.play();
+  }
+  function captureCleanFirstFrame(){
+    sizeCanvases();
+    if(!sized)return;
+    ctx.drawImage(v,0,0,c.width,c.height);
+    firstFrame=keyAlpha(ctx,c.width,c.height);
+  }
+  function prepare(){
+    v.pause();
+    if(v.currentTime===0){
+      captureCleanFirstFrame();
+      beginPlayback();
+      return;
+    }
+    v.addEventListener('seeked',function onSeeked(){
+      v.removeEventListener('seeked',onSeeked);
+      captureCleanFirstFrame();
+      beginPlayback();
+    });
+    v.currentTime=0;
   }
   if(v.readyState>=2){
-    start();
+    prepare();
   }else{
     v.addEventListener('loadeddata',function onInitial(){
       v.removeEventListener('loadeddata',onInitial);
-      start();
+      prepare();
     });
   }
 }
