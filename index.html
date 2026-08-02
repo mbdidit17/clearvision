@@ -56,7 +56,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:cen
 body.introgo .logo-aura{animation:auraBloom 2.4s ease both 0.1s;}
 .home-particles{position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
 .logo-box{position:relative;display:flex;flex-direction:column;align-items:center;}
-.cv-eye-video{width:680px;max-width:90vw;height:auto;display:block;position:relative;z-index:1;pointer-events:none;}
+.cv-eye-video-wrap{position:relative;width:680px;max-width:90vw;z-index:1;}
+.cv-eye-video{width:100%;height:auto;display:block;pointer-events:none;}
+.cv-eye-video-rest{position:absolute;top:0;left:0;opacity:0;transition:opacity 1.1s ease;}
+.cv-eye-video-rest.show{opacity:1;}
 body.introgo .cv-eyefloat{animation:eyeFloat 4.6s ease-in-out infinite 2.3s;transform-origin:center;}
 @keyframes eyeFloat{0%,100%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(-18px) rotate(-1.2deg);}}
 .logo-box::after{content:'';position:absolute;top:0;bottom:0;left:30%;width:40%;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,0.28) 50%,transparent 70%);mix-blend-mode:screen;transform:translateX(200%) rotate(6deg);opacity:0;z-index:3;pointer-events:none;}
@@ -485,7 +488,10 @@ textarea.cfa-input{resize:vertical;}
     <div class="logo-aura"></div>
     <div class="logo-box">
       <video class="cv-eye-video-src" id="cvEyeVideoSrc" src="images/eye-intro.mov" autoplay muted playsinline style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;"></video>
-      <canvas class="cv-eye-video cv-eyefloat" id="cvEyeVideoCanvas"></canvas>
+      <div class="cv-eyefloat cv-eye-video-wrap">
+        <canvas class="cv-eye-video" id="cvEyeVideoCanvas"></canvas>
+        <canvas class="cv-eye-video cv-eye-video-rest" id="cvEyeVideoRestCanvas"></canvas>
+      </div>
       <div class="logo-text">CLEAR VISION</div>
     </div>
   </div>
@@ -1647,48 +1653,67 @@ function initCoachingCardFX(){
   initTiltCards('#coaching .tier',8,1.015,6);
 }
 function initEyeVideo(){
-  var v=document.getElementById('cvEyeVideoSrc'),c=document.getElementById('cvEyeVideoCanvas');
-  if(!v||!c)return;
+  var v=document.getElementById('cvEyeVideoSrc');
+  var c=document.getElementById('cvEyeVideoCanvas');
+  var rc=document.getElementById('cvEyeVideoRestCanvas');
+  if(!v||!c||!rc)return;
   var ctx=c.getContext('2d',{willReadFrequently:true});
-  var sized=false,started=false,resetting=false;
-  function paintFrame(){
-    if(v.videoWidth&&!sized){
-      var dpr=Math.min(window.devicePixelRatio||1,2);
-      var w=Math.round(760*dpr);
-      c.width=w;
-      c.height=Math.round(w*(v.videoHeight/v.videoWidth));
-      sized=true;
-    }
-    if(!sized)return;
-    ctx.drawImage(v,0,0,c.width,c.height);
-    var frame=ctx.getImageData(0,0,c.width,c.height);
+  var rctx=rc.getContext('2d',{willReadFrequently:true});
+  var sized=false,started=false;
+  function keyAlpha(context,w,h){
+    var frame=context.getImageData(0,0,w,h);
     var d=frame.data;
     for(var i=0;i<d.length;i+=4){
       d[i+3]=Math.max(d[i],d[i+1],d[i+2]);
     }
-    ctx.putImageData(frame,0,0);
+    context.putImageData(frame,0,0);
+  }
+  function sizeCanvases(){
+    if(sized||!v.videoWidth)return;
+    var dpr=Math.min(window.devicePixelRatio||1,2);
+    var w=Math.round(760*dpr);
+    var h=Math.round(w*(v.videoHeight/v.videoWidth));
+    c.width=w;c.height=h;
+    rc.width=w;rc.height=h;
+    sized=true;
+  }
+  function paintLive(){
+    sizeCanvases();
+    if(!sized)return;
+    ctx.drawImage(v,0,0,c.width,c.height);
+    keyAlpha(ctx,c.width,c.height);
   }
   function loop(){
-    paintFrame();
-    if(!v.ended)requestAnimationFrame(loop);
+    paintLive();
+    if(v.ended){onEnded();return;}
+    requestAnimationFrame(loop);
+  }
+  function onEnded(){
+    v.pause();
+    v.removeAttribute('autoplay');
+    v.addEventListener('loadeddata',function onReady(){
+      v.removeEventListener('loadeddata',onReady);
+      rctx.drawImage(v,0,0,rc.width,rc.height);
+      keyAlpha(rctx,rc.width,rc.height);
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){rc.classList.add('show');});
+      });
+    });
+    v.load();
   }
   function start(){
     if(started)return;
     started=true;
     requestAnimationFrame(loop);
   }
-  v.addEventListener('loadeddata',function(){
-    if(resetting){resetting=false;paintFrame();return;}
+  if(v.readyState>=2){
     start();
-  });
-  v.addEventListener('ended',function(){
-    started=false;
-    resetting=true;
-    v.pause();
-    v.removeAttribute('autoplay');
-    v.load();
-  });
-  if(v.readyState>=2)start();
+  }else{
+    v.addEventListener('loadeddata',function onInitial(){
+      v.removeEventListener('loadeddata',onInitial);
+      start();
+    });
+  }
 }
 
 function scrollToStoreSet(id){
