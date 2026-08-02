@@ -57,8 +57,9 @@ body.introgo .logo-aura{animation:auraBloom 2.4s ease both 0.1s;}
 .home-particles{position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
 .logo-box{position:relative;display:flex;flex-direction:column;align-items:center;}
 .cv-eye-video-wrap{position:relative;width:680px;max-width:90vw;z-index:1;}
-.cv-eye-video{width:100%;height:auto;display:block;pointer-events:none;}
-.cv-eye-video-rest{position:absolute;top:0;left:0;opacity:0;transition:opacity 1.1s ease;}
+.cv-eye-video{width:100%;height:auto;display:block;pointer-events:none;transition:opacity 0.8s ease;}
+.cv-eye-video-rest{position:absolute;top:0;left:0;opacity:0;transition:opacity 0.8s ease;}
+.cv-eye-video-live.fading{opacity:0;}
 .cv-eye-video-rest.show{opacity:1;}
 body.introgo .cv-eyefloat{animation:eyeFloat 4.6s ease-in-out infinite 2.3s;transform-origin:center;}
 @keyframes eyeFloat{0%,100%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(-18px) rotate(-1.2deg);}}
@@ -489,7 +490,7 @@ textarea.cfa-input{resize:vertical;}
     <div class="logo-box">
       <video class="cv-eye-video-src" id="cvEyeVideoSrc" src="images/eye-intro.mov" autoplay muted playsinline style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;"></video>
       <div class="cv-eyefloat cv-eye-video-wrap">
-        <canvas class="cv-eye-video" id="cvEyeVideoCanvas"></canvas>
+        <canvas class="cv-eye-video cv-eye-video-live" id="cvEyeVideoCanvas"></canvas>
         <canvas class="cv-eye-video cv-eye-video-rest" id="cvEyeVideoRestCanvas"></canvas>
       </div>
       <div class="logo-text">CLEAR VISION</div>
@@ -1693,7 +1694,10 @@ function initEyeVideo(){
     v.pause();
     if(firstFrame)rctx.putImageData(firstFrame,0,0);
     requestAnimationFrame(function(){
-      requestAnimationFrame(function(){rc.classList.add('show');});
+      requestAnimationFrame(function(){
+        rc.classList.add('show');
+        c.classList.add('fading');
+      });
     });
   }
   function beginPlayback(){
