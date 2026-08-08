@@ -513,7 +513,7 @@ textarea.cfa-input{resize:vertical;}
     <div class="box" onclick="showPage('coaching')"><span class="box-title">Coaching</span></div>
     <div class="box" onclick="showPage('store')"><span class="box-title">Store</span><span class="box-sub">Coming Soon</span></div>
     <div class="box" onclick="showPage('story')"><span class="box-title">My Story</span><span class="box-sub">The Journey</span></div>
-    <div class="box" style="cursor:default;"><span class="box-title">Results</span><span class="box-sub">Transformations</span></div>
+    <div class="box" onclick="showPage('results')"><span class="box-title">Results</span><span class="box-sub">Transformations</span></div>
   </div>
 </div>
 
@@ -1293,6 +1293,7 @@ var cvRevealObs=new IntersectionObserver(function(es){es.forEach(function(e){if(
 function cvRevealScan(){document.querySelectorAll('.page.active .reveal:not(.in)').forEach(function(el){cvRevealObs.observe(el);});}
 function showPage(n){
   if(n==='store'&&(!currentUser||currentUser.email!=='marcelaug28@gmail.com'))return;
+  if(n==='results'&&(!currentUser||currentUser.email!=='marcelaug28@gmail.com'))return;
   closeMobileNav();
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-links a').forEach(a=>a.classList.remove('active'));
