@@ -309,6 +309,19 @@ textarea.cfa-input{resize:vertical;}
 .result-card{background:#0a0a0a;border:1px solid rgba(255,255,255,0.07);overflow:hidden;transition:border-color 0.2s;}
 .result-card:hover{border-color:rgba(110,40,180,0.4);}
 .result-placeholder{height:220px;background:linear-gradient(135deg,#0f0f0f,#1a1a1a);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.12);font-size:0.75rem;letter-spacing:0.15em;text-transform:uppercase;border-radius:16px;}
+.result-media{display:grid;grid-template-columns:1fr 1fr;gap:2px;height:220px;background:#000;}
+.split-slot{position:relative;overflow:hidden;cursor:pointer;background:#000;}
+.split-slot-pending{display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.15);font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;text-align:center;padding:1rem;cursor:default;}
+.split-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:clip-path 0.45s cubic-bezier(0.2,0.7,0.3,1);}
+.split-img[data-side="a"]{clip-path:polygon(0 0,100% 0,0 100%);}
+.split-img[data-side="b"]{clip-path:polygon(100% 0,100% 100%,0 100%);}
+.split-slot.show-a .split-img[data-side="a"]{clip-path:polygon(0 0,100% 0,100% 100%,0 100%);}
+.split-slot.show-a .split-img[data-side="b"]{clip-path:polygon(100% 100%,100% 100%,100% 100%);}
+.split-slot.show-b .split-img[data-side="b"]{clip-path:polygon(0 0,100% 0,100% 100%,0 100%);}
+.split-slot.show-b .split-img[data-side="a"]{clip-path:polygon(0 0,0 0,0 0);}
+.split-divider{position:absolute;inset:0;pointer-events:none;background:linear-gradient(135deg,transparent calc(50% - 1px),rgba(255,255,255,0.35) 50%,transparent calc(50% + 1px));transition:opacity 0.3s;}
+.split-slot.show-a .split-divider,.split-slot.show-b .split-divider{opacity:0;}
+.split-badge{position:absolute;top:0.6rem;left:0.6rem;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);color:rgba(255,255,255,0.8);font-size:0.58rem;letter-spacing:0.14em;text-transform:uppercase;padding:0.28rem 0.55rem;border-radius:20px;border:1px solid rgba(255,255,255,0.15);z-index:2;pointer-events:none;}
 /* premium restyle + scroll reveal */
 .reveal{opacity:0;transform:translateY(28px);transition:opacity 0.7s cubic-bezier(0.2,0.6,0.3,1),transform 0.7s cubic-bezier(0.2,0.6,0.3,1);}
 .reveal.in{opacity:1;transform:none;}
@@ -1002,10 +1015,14 @@ textarea.cfa-input{resize:vertical;}
     <div id="results-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;">
       <!-- Placeholder cards — replace with real client photos/testimonials -->
       <div class="result-card reveal">
-        <div style="position:relative;height:220px;display:grid;grid-template-columns:1fr 1fr;gap:2px;background:#000;">
-          <img src="images/gerson-before-1.webp" alt="Gerson - before, back" style="width:100%;height:100%;object-fit:cover;object-position:center 12%;display:block;">
-          <img src="images/gerson-before-2.webp" alt="Gerson - before, front" style="width:100%;height:100%;object-fit:cover;object-position:center 12%;display:block;">
-          <span style="position:absolute;top:0.7rem;left:0.7rem;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);color:rgba(255,255,255,0.8);font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.6rem;border-radius:20px;border:1px solid rgba(255,255,255,0.15);">Before</span>
+        <div class="result-media">
+          <div class="split-slot">
+            <img class="split-img" data-side="a" src="images/gerson-before-1.webp" alt="Gerson before - back" style="object-position:center 12%;">
+            <img class="split-img" data-side="b" src="images/gerson-before-2.webp" alt="Gerson before - front" style="object-position:center 12%;">
+            <div class="split-divider"></div>
+            <span class="split-badge">Before</span>
+          </div>
+          <div class="split-slot split-slot-pending">After — coming soon</div>
         </div>
         <div class="result-body"><div class="result-name">Gerson</div></div>
       </div>
@@ -1660,6 +1677,35 @@ function initCoachingCardFX(){
   if(window.matchMedia && !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
   initTiltCards('#coaching .tier',8,1.015,6);
 }
+function initSplitSlots(){
+  var hasHover=window.matchMedia && window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+  document.querySelectorAll('.split-slot').forEach(function(slot){
+    if(slot.dataset.splitInit)return;
+    slot.dataset.splitInit='1';
+    function sideAt(clientX,clientY){
+      var r=slot.getBoundingClientRect();
+      var x=(clientX-r.left)/r.width, y=(clientY-r.top)/r.height;
+      return (x+y<1)?'a':'b';
+    }
+    if(hasHover){
+      slot.addEventListener('mousemove',function(e){
+        var side=sideAt(e.clientX,e.clientY);
+        slot.classList.toggle('show-a',side==='a');
+        slot.classList.toggle('show-b',side==='b');
+      });
+      slot.addEventListener('mouseleave',function(){
+        slot.classList.remove('show-a','show-b');
+      });
+    }else{
+      slot.addEventListener('click',function(e){
+        var side=sideAt(e.clientX,e.clientY);
+        var isShowing=slot.classList.contains('show-'+side);
+        slot.classList.remove('show-a','show-b');
+        if(!isShowing)slot.classList.add('show-'+side);
+      });
+    }
+  });
+}
 function initEyeVideo(){
   var v=document.getElementById('cvEyeVideoSrc');
   var c=document.getElementById('cvEyeVideoCanvas');
@@ -1868,6 +1914,7 @@ document.addEventListener('DOMContentLoaded',function(){
   setTimeout(initCoachingCardFX,100);
   setTimeout(initStoreSidebar,100);
   initEyeVideo();
+  initSplitSlots();
   applySoldOut();
   var bl=document.getElementById('nav-basket-li');if(bl)bl.style.display='none';
   var nl=document.getElementById('nav-links');if(nl)nl.style.display='none';
